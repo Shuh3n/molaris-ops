@@ -1,0 +1,33 @@
+{
+  "landing": {
+    "title": "MOLARIS OPS",
+    "subtitle": "Dental Operations Redefined.",
+    "description": "The minimalist workspace for modern dental clinics. Streamline your practice, empower your staff, and deliver excellence to every patient.",
+    "login_btn": "Login",
+    "get_started": "Get Started",
+    "view_demo": "View Demo",
+    "features": {
+      "analytics": "Real-time Analytics",
+      "analytics_desc": "Instant insights into your clinic's performance and patient flow.",
+      "secure": "Secure by Design",
+      "secure_desc": "Bank-grade encryption for all medical records and communications.",
+      "scalable": "Infinite Scalability",
+      "scalable_desc": "From single practitioners to multi-clinic networks."
+    }
+  },
+  "login": {
+    "welcome": "Welcome Back",
+    "subtitle": "Sign in to manage your practice",
+    "email": "Email Address",
+    "password": "Password",
+    "forgot": "Forgot?",
+    "remember": "Keep me logged in for 30 days",
+    "enter": "Enter Workspace",
+    "new": "New to Molaris?",
+    "request": "Request an invite",
+    "precision": "Where Precision",
+    "meets": "Meets",
+    "serenity": "Serenity.",
+    "branding_desc": "Access your clinical sanctuary. Manage patient wellness with an interface designed for clarity and administrative excellence."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "landing": {
+    "title": "MOLARIS OPS",
+    "subtitle": "Operaciones Dentales Redefinidas.",
+    "description": "El espacio de trabajo minimalista para clínicas dentales modernas. Optimiza tu práctica, empodera a tu personal y entrega excelencia a cada paciente.",
+    "login_btn": "Iniciar Sesión",
+    "get_started": "Comenzar Ahora",
+    "view_demo": "Ver Demo",
+    "features": {
+      "analytics": "Analíticas en Tiempo Real",
+      "analytics_desc": "Perspectivas instantáneas sobre el rendimiento de tu clínica y el flujo de pacientes.",
+      "secure": "Seguridad por Diseño",
+      "secure_desc": "Encriptación de grado bancario para todos los registros médicos.",
+      "scalable": "Escalabilidad Infinita",
+      "scalable_desc": "Desde profesionales independientes hasta redes de múltiples clínicas."
+    }
+  },
+  "login": {
+    "welcome": "Bienvenido de Nuevo",
+    "subtitle": "Inicia sesión para gestionar tu clínica",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "forgot": "¿Olvidaste?",
+    "remember": "Mantenerme conectado por 30 días",
+    "enter": "Entrar al Espacio de Trabajo",
+    "new": "¿Eres nuevo en Molaris?",
+    "request": "Solicita una invitación",
+    "precision": "Donde la Precisión",
+    "meets": "se encuentra con la",
+    "serenity": "Serenidad.",
+    "branding_desc": "Accede a tu santuario clínico. Gestiona el bienestar del paciente con una interfaz diseñada para la claridad y la excelencia administrativa."
+  }
+}
