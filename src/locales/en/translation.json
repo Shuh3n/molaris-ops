@@ -2,22 +2,22 @@
   "landing": {
     "title": "MOLARIS OPS",
     "subtitle": "Dental Operations Redefined.",
-    "description": "The minimalist workspace for modern dental clinics. Streamline your practice, empower your staff, and deliver excellence to every patient.",
-    "login_btn": "Login",
-    "get_started": "Get Started",
+    "description": "The minimalist workspace for modern dental clinics. Optimize your practice, empower your staff, and deliver excellence to every patient.",
+    "login_btn": "Log In",
+    "get_started": "Get Started Now",
     "view_demo": "View Demo",
     "features": {
-      "analytics": "Real-time Analytics",
-      "analytics_desc": "Instant insights into your clinic's performance and patient flow.",
-      "secure": "Secure by Design",
-      "secure_desc": "Bank-grade encryption for all medical records and communications.",
+      "analytics": "Real-Time Analytics",
+      "analytics_desc": "Instant insights into your clinic performance and patient flow.",
+      "secure": "Security by Design",
+      "secure_desc": "Bank-grade encryption for all medical records.",
       "scalable": "Infinite Scalability",
-      "scalable_desc": "From single practitioners to multi-clinic networks."
+      "scalable_desc": "From solo practitioners to multi-clinic networks."
     }
   },
   "login": {
     "welcome": "Welcome Back",
-    "subtitle": "Sign in to manage your practice",
+    "subtitle": "Log in to manage your clinic",
     "email": "Email Address",
     "password": "Password",
     "forgot": "Forgot?",
@@ -26,8 +26,187 @@
     "new": "New to Molaris?",
     "request": "Request an invite",
     "precision": "Where Precision",
-    "meets": "Meets",
+    "meets": "meets",
     "serenity": "Serenity.",
     "branding_desc": "Access your clinical sanctuary. Manage patient wellness with an interface designed for clarity and administrative excellence."
+  },
+  "common": {
+    "search": "Search...",
+    "notifications": "Notifications",
+    "help": "Help",
+    "new_appointment": "New Appointment",
+    "profile": "User Profile",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "appointments": "Appointments",
+    "billing": "Billing",
+    "patients": "Patients",
+    "settings": "Settings",
+    "clinic_slogan": "Dental Sanctuary",
+    "export": "Export",
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "print": "Print",
+      "download": "Download",
+      "save": "Save",
+      "cancel": "Cancel",
+      "discard": "Discard"
+    }
+  },
+  "dashboard": {
+    "welcome": "Morning, Dr. Smith",
+    "glance": "Your practice at a glance.",
+    "stats": {
+      "appointments": "Today's Appointments",
+      "pending": "Pending Confirmations",
+      "revenue": "Revenue Summary",
+      "weekly": "Weekly Revenue",
+      "projected": "Est. Projected"
+    },
+    "schedule": {
+      "title": "Today's Schedule",
+      "view_all": "View Full Calendar"
+    },
+    "quick_actions": {
+      "title": "Quick Actions",
+      "create": "Create Appointment",
+      "invoice": "Generate Invoice",
+      "history": "Patient History"
+    },
+    "calendar": {
+      "upcoming": "Coming up:",
+      "meeting": "Practice Staff Meeting at 4 PM"
+    }
+  },
+  "billing": {
+    "title": "Billing & Invoices",
+    "subtitle": "Manage your practice revenue and patient accounts.",
+    "new_invoice": "New Invoice",
+    "stats": {
+      "outstanding": "Total Outstanding",
+      "pending_desc": "Based on 142 pending invoices",
+      "revenue_mtd": "Revenue (MTD)",
+      "overdue": "Overdue",
+      "action_required": "Action Required"
+    },
+    "table": {
+      "recent": "Recent Invoices",
+      "view_all": "View All Records",
+      "patient": "Patient Name",
+      "description": "Service Description",
+      "cost": "Cost",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending"
+    },
+    "modal": {
+      "title": "Generate Invoice",
+      "subtitle": "Draft a new billing statement for a patient",
+      "selection": "Patient Selection",
+      "search_placeholder": "Search patient name or ID...",
+      "service_details": "Service Details",
+      "category": "Service Category",
+      "treatment_desc": "Treatment Description",
+      "total_cost": "Total Cost ($)",
+      "service_date": "Date of Service",
+      "initial_status": "Initial Status",
+      "discard": "Discard Draft",
+      "create": "Create Invoice"
+    }
+  },
+  "invoice": {
+    "preview_title": "Invoice Preview",
+    "download_pdf": "Download PDF",
+    "send_whatsapp": "Send via WhatsApp",
+    "date_issued": "Date Issued",
+    "due_date": "Due Date",
+    "bill_to": "Bill To",
+    "patient_id": "Patient ID",
+    "practice_details": "Practice Details",
+    "npi": "NPI Number",
+    "tax_id": "Tax ID",
+    "summary": {
+      "subtotal": "Subtotal",
+      "tax": "Tax (0%)",
+      "total": "Total Amount"
+    },
+    "history": {
+      "title": "Payment History",
+      "received": "Payment Received"
+    },
+    "footer": "Thank you for choosing DentAdmin. Please keep this invoice for your insurance claims."
+  },
+  "patients": {
+    "title": "Patients",
+    "subtitle": "Manage your practice's patient directory. Access contact details and scheduled visits at a glance.",
+    "filter": "Filter",
+    "export_list": "Export List",
+    "table": {
+      "identity": "Patient Identity",
+      "phone": "Phone Number",
+      "status": "Status",
+      "action": "Action"
+    },
+    "status": {
+      "checked_in": "Checked In",
+      "completed": "Completed",
+      "follow_up": "Follow-up Required",
+      "new": "New Patient"
+    },
+    "pulse": {
+      "title": "Practice Pulse",
+      "flow": "Patient Flow",
+      "today": "Today's Visits"
+    },
+    "activity": "Recent Activity",
+    "tip": {
+      "title": "Admin Tip",
+      "desc": "Hover over a patient's name to see their preferred communication method."
+    }
+  },
+  "settings": {
+    "title": "Practice Settings",
+    "subtitle": "Manage your clinic identity and clinical workflows.",
+    "sections": {
+      "info": "Clinic Information",
+      "branding": "Visual Identity",
+      "alerts": "Automated Alerts",
+      "access": "Access Levels"
+    },
+    "fields": {
+      "name": "Practice Name",
+      "id": "Clinic ID",
+      "email": "Contact Email",
+      "phone": "Primary Phone",
+      "emergency": "Emergency Line"
+    },
+    "branding": {
+      "subtitle": "Update clinic photography and logo assets.",
+      "manage": "Manage Branding Assets"
+    },
+    "alerts": {
+      "reminders": "Appointment Reminders",
+      "reminders_desc": "Send SMS 24h before",
+      "checkins": "Patient Check-ins",
+      "checkins_desc": "Real-time desktop alerts",
+      "reports": "Billing Reports",
+      "reports_desc": "Monthly email summaries"
+    },
+    "access": {
+      "manage": "Manage Permissions",
+      "admins": "Administrators",
+      "medical": "Medical Staff",
+      "front": "Front Desk"
+    },
+    "actions": {
+      "discard": "Discard Changes",
+      "save": "Save Configuration"
+    }
   }
 }

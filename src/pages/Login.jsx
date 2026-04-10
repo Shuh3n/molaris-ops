@@ -39,11 +39,7 @@ const Login = () => {
       if (profileError) throw profileError;
 
       const roleName = profile.roles?.nombre;
-      if (roleName === 'RECEPCIONISTA') {
-        navigate('/dashboard/recepcionista');
-      } else {
-        navigate('/dashboard/recepcionista');
-      }
+      navigate('/dashboard');
 
     } catch (err) {
       const msg = err.message === 'Invalid login credentials' ? 'Credenciales incorrectas' : err.message;

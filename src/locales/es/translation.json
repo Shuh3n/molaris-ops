@@ -29,5 +29,184 @@
     "meets": "se encuentra con la",
     "serenity": "Serenidad.",
     "branding_desc": "Accede a tu santuario clínico. Gestiona el bienestar del paciente con una interfaz diseñada para la claridad y la excelencia administrativa."
+  },
+  "common": {
+    "search": "Buscar...",
+    "notifications": "Notificaciones",
+    "help": "Ayuda",
+    "new_appointment": "Nueva Cita",
+    "profile": "Perfil de Usuario",
+    "logout": "Cerrar Sesión",
+    "dashboard": "Dashboard",
+    "appointments": "Citas",
+    "billing": "Facturación",
+    "patients": "Pacientes",
+    "settings": "Ajustes",
+    "clinic_slogan": "Santuario Dental",
+    "export": "Exportar",
+    "actions": {
+      "view": "Ver",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "print": "Imprimir",
+      "download": "Descargar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "discard": "Descartar"
+    }
+  },
+  "dashboard": {
+    "welcome": "Buen día, Dr. Smith",
+    "glance": "Tu clínica de un vistazo.",
+    "stats": {
+      "appointments": "Citas de hoy",
+      "pending": "Confirmaciones pendientes",
+      "revenue": "Resumen de ingresos",
+      "weekly": "Ingresos semanales",
+      "projected": "Est. Proyectado"
+    },
+    "schedule": {
+      "title": "Agenda de hoy",
+      "view_all": "Ver calendario completo"
+    },
+    "quick_actions": {
+      "title": "Acciones Rápidas",
+      "create": "Crear Cita",
+      "invoice": "Generar Factura",
+      "history": "Historial del Paciente"
+    },
+    "calendar": {
+      "upcoming": "A continuación:",
+      "meeting": "Reunión de personal a las 4 PM"
+    }
+  },
+  "billing": {
+    "title": "Facturación y Facturas",
+    "subtitle": "Gestiona los ingresos de tu clínica y las cuentas de pacientes.",
+    "new_invoice": "Nueva Factura",
+    "stats": {
+      "outstanding": "Total Pendiente",
+      "pending_desc": "Basado en 142 facturas pendientes",
+      "revenue_mtd": "Ingresos (Mes a la fecha)",
+      "overdue": "Vencido",
+      "action_required": "Acción Requerida"
+    },
+    "table": {
+      "recent": "Facturas Recientes",
+      "view_all": "Ver todos los registros",
+      "patient": "Nombre del Paciente",
+      "description": "Descripción del Servicio",
+      "cost": "Costo",
+      "date": "Fecha",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "paid": "Pagado",
+      "pending": "Pendiente"
+    },
+    "modal": {
+      "title": "Generar Factura",
+      "subtitle": "Borrador de una nueva declaración de facturación para un paciente",
+      "selection": "Selección de Paciente",
+      "search_placeholder": "Buscar nombre o ID del paciente...",
+      "service_details": "Detalles del Servicio",
+      "category": "Categoría de Servicio",
+      "treatment_desc": "Descripción del Tratamiento",
+      "total_cost": "Costo Total ($)",
+      "service_date": "Fecha del Servicio",
+      "initial_status": "Estado Inicial",
+      "discard": "Descartar Borrador",
+      "create": "Crear Factura"
+    }
+  },
+  "invoice": {
+    "preview_title": "Vista Previa de Factura",
+    "download_pdf": "Descargar PDF",
+    "send_whatsapp": "Enviar por WhatsApp",
+    "date_issued": "Fecha de Emisión",
+    "due_date": "Fecha de Vencimiento",
+    "bill_to": "Facturar a",
+    "patient_id": "ID del Paciente",
+    "practice_details": "Detalles de la Clínica",
+    "npi": "Número NPI",
+    "tax_id": "ID de Impuestos",
+    "summary": {
+      "subtotal": "Subtotal",
+      "tax": "Impuesto (0%)",
+      "total": "Monto Total"
+    },
+    "history": {
+      "title": "Historial de Pagos",
+      "received": "Pago Recibido"
+    },
+    "footer": "Gracias por elegir DentAdmin. Por favor conserve esta factura para sus reclamos de seguro."
+  },
+  "patients": {
+    "title": "Pacientes",
+    "subtitle": "Gestiona el directorio de pacientes de tu clínica. Accede a detalles de contacto y visitas programadas de un vistazo.",
+    "filter": "Filtrar",
+    "export_list": "Exportar Lista",
+    "table": {
+      "identity": "Identidad del Paciente",
+      "phone": "Número de Teléfono",
+      "status": "Estado",
+      "action": "Acción"
+    },
+    "status": {
+      "checked_in": "Registrado",
+      "completed": "Completado",
+      "follow_up": "Seguimiento Requerido",
+      "new": "Nuevo Paciente"
+    },
+    "pulse": {
+      "title": "Pulso de la Clínica",
+      "flow": "Flujo de Pacientes",
+      "today": "Visitas de Hoy"
+    },
+    "activity": "Actividad Reciente",
+    "tip": {
+      "title": "Consejo de Administración",
+      "desc": "Pasa el mouse sobre el nombre de un paciente para ver su método de comunicación preferido."
+    }
+  },
+  "settings": {
+    "title": "Ajustes de la Clínica",
+    "subtitle": "Gestiona la identidad de tu clínica y los flujos de trabajo clínicos.",
+    "sections": {
+      "info": "Información de la Clínica",
+      "branding": "Identidad Visual",
+      "alerts": "Alertas Automatizadas",
+      "access": "Niveles de Acceso"
+    },
+    "fields": {
+      "name": "Nombre de la Clínica",
+      "id": "ID de la Clínica",
+      "email": "Email de Contacto",
+      "phone": "Teléfono Principal",
+      "emergency": "Línea de Emergencia"
+    },
+    "branding": {
+      "subtitle": "Actualiza la fotografía de la clínica y los activos del logo.",
+      "manage": "Gestionar Activos de Marca"
+    },
+    "alerts": {
+      "reminders": "Recordatorios de Citas",
+      "reminders_desc": "Enviar SMS 24h antes",
+      "checkins": "Check-ins de Pacientes",
+      "checkins_desc": "Alertas de escritorio en tiempo real",
+      "reports": "Informes de Facturación",
+      "reports_desc": "Resúmenes mensuales por email"
+    },
+    "access": {
+      "manage": "Gestionar Permisos",
+      "admins": "Administradores",
+      "medical": "Personal Médico",
+      "front": "Recepción"
+    },
+    "actions": {
+      "discard": "Descartar Cambios",
+      "save": "Guardar Configuración"
+    }
   }
 }
