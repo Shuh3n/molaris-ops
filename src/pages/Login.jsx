@@ -73,7 +73,7 @@ const Login = () => {
         <section className="hidden lg:flex flex-col gap-8 pr-12">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl editorial-gradient flex items-center justify-center shadow-lg">
-              <span className="material-symbols-outlined text-white text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>dentistry</span>
+              <img src="/favicon.svg" alt="Molaris logo" className="w-8 h-8" />
             </div>
             <h1 className="font-headline font-extrabold text-3xl tracking-tight text-primary">MOLARIS OPS</h1>
           </div>
@@ -104,7 +104,7 @@ const Login = () => {
           <div className="w-full max-w-[480px] glass-panel rounded-[2.5rem] p-10 lg:p-14 ambient-shadow border border-white/20">
             <div className="flex flex-col items-center lg:items-start gap-2 mb-10">
               <div className="lg:hidden w-16 h-16 rounded-2xl editorial-gradient flex items-center justify-center mb-4 shadow-lg">
-                <span className="material-symbols-outlined text-white text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>dentistry</span>
+                <img src="/favicon.svg" alt="Molaris logo" className="w-10 h-10" />
               </div>
               <h3 className="font-headline text-3xl font-bold tracking-tight text-on-surface">{t('login.welcome')}</h3>
               <p className="text-on-surface-variant text-sm font-medium">{t('login.subtitle')}</p>

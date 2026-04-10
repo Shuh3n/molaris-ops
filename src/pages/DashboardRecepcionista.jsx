@@ -71,7 +71,7 @@ const DashboardRecepcionista = () => {
       >
         <div className="mb-8 px-4 py-2 flex items-center gap-3 min-h-[64px]">
           <div className="w-10 h-10 rounded-xl editorial-gradient flex items-center justify-center shadow-lg shrink-0">
-            <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>dentistry</span>
+            <img src="/favicon.svg" alt="Molaris logo" className="w-7 h-7" />
           </div>
           <AnimatePresence mode="wait">
             {!isSidebarCollapsed && (

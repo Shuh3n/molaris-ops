@@ -46,7 +46,7 @@ const InvoicePreview = () => {
               <div>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white">
-                    <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>dentistry</span>
+                    <img src="/favicon.svg" alt="Molaris logo" className="w-8 h-8" />
                   </div>
                   <div>
                     <h3 className="text-2xl font-black font-headline tracking-tighter text-on-surface leading-none">MOLARIS OPS</h3>
