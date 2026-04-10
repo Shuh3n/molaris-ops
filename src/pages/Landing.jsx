@@ -10,9 +10,16 @@ const Landing = () => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/50">
       {/* Navbar */}
-      <nav className="flex justify-between items-center px-12 py-6 sticky top-0 bg-white/50 backdrop-blur-xl z-50">
+      <motion.nav
+        initial={{ y: -24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.55, ease: 'easeOut' }}
+        className="flex justify-between items-center px-12 py-6 sticky top-0 bg-white/50 backdrop-blur-xl z-50"
+      >
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg editorial-gradient flex items-center justify-center text-white font-bold text-xl shadow-md">M</div>
+          <div className="w-10 h-10 rounded-xl editorial-gradient flex items-center justify-center shadow-md">
+            <img src="/favicon.svg" alt="Molaris logo" className="w-7 h-7 object-contain" />
+          </div>
           <span className="font-headline font-extrabold text-2xl tracking-tight text-primary">{t('landing.title')}</span>
         </div>
         <div className="flex gap-8 items-center">
@@ -21,7 +28,7 @@ const Landing = () => {
             {t('landing.login_btn')}
           </Link>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Hero */}
       <main className="flex-grow flex flex-col items-center justify-center px-6 text-center py-20">

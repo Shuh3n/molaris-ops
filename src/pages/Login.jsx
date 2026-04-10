@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -61,6 +61,16 @@ const Login = () => {
       {/* Language Toggle */}
       <div className="absolute top-6 right-6 z-20">
         <LanguageToggle />
+      </div>
+
+      <div className="absolute top-6 left-6 z-20">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 hover:bg-white text-slate-700 font-bold text-sm shadow-md transition-all"
+        >
+          <span className="material-symbols-outlined text-base">arrow_back</span>
+          Volver al inicio
+        </Link>
       </div>
 
       <motion.main 
