@@ -1,19 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import MainLayout from './components/MainLayout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
+import DashboardRecepcionista from './pages/DashboardRecepcionista';
 import Dashboard from './pages/Dashboard';
 import Billing from './pages/Billing';
 import InvoicePreview from './pages/InvoicePreview';
 import Patients from './pages/Patients';
 import Settings from './pages/Settings';
-
-const Placeholder = ({ title }) => (
-  <div className="flex items-center justify-center h-full">
-    <h2 className="text-2xl font-bold text-slate-300 italic">{title} - Próximamente</h2>
-  </div>
-);
 
 function App() {
   return (
@@ -22,17 +16,20 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         
-        {/* Protected Routes (MainLayout) */}
-        <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
-        <Route path="/appointments" element={<MainLayout><Placeholder title="Citas" /></MainLayout>} />
-        <Route path="/billing" element={<MainLayout><Billing /></MainLayout>} />
-        <Route path="/billing/invoice/:id" element={<MainLayout><InvoicePreview /></MainLayout>} />
-        <Route path="/patients" element={<MainLayout><Patients /></MainLayout>} />
-        <Route path="/notifications" element={<MainLayout><Placeholder title="Notificaciones" /></MainLayout>} />
-        <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
-        
-        {/* Legacy / Redirects */}
-        <Route path="/dashboard/recepcionista" element={<Navigate to="/dashboard" replace />} />
+        {/* Dashboard y sus secciones usando tu DashboardRecepcionista como Layout */}
+        <Route path="/dashboard/recepcionista" element={<DashboardRecepcionista />}>
+          <Route index element={<Dashboard />} />
+          <Route path="citas" element={<Dashboard />} /> {/* Citas usa Dashboard por ahora */}
+          <Route path="facturacion" element={<Billing />} />
+          <Route path="facturacion/invoice/:id" element={<InvoicePreview />} />
+          <Route path="pacientes" element={<Patients />} />
+          <Route path="notificaciones" element={<Dashboard />} />
+          <Route path="ajustes" element={<Settings />} />
+        </Route>
+
+        {/* Redirecciones de conveniencia */}
+        <Route path="/dashboard" element={<Navigate to="/dashboard/recepcionista" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

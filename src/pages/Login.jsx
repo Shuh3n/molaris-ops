@@ -4,18 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
+import LanguageToggle from '../components/LanguageToggle';
+
 const Login = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation(); // Quitamos i18n ya que no lo usamos directamente aquí
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'es' ? 'en' : 'es';
-    i18n.changeLanguage(newLang);
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -39,7 +36,12 @@ const Login = () => {
       if (profileError) throw profileError;
 
       const roleName = profile.roles?.nombre;
-      navigate('/dashboard');
+      if (roleName === 'RECEPCIONISTA') {
+        navigate('/dashboard/recepcionista');
+      } else {
+        // Por ahora redirigimos a recepcionista, pero podrías tener otros dashboards
+        navigate('/dashboard/recepcionista');
+      }
 
     } catch (err) {
       const msg = err.message === 'Invalid login credentials' ? 'Credenciales incorrectas' : err.message;
@@ -58,12 +60,7 @@ const Login = () => {
     >
       {/* Language Toggle */}
       <div className="absolute top-6 right-6 z-20">
-        <button 
-          onClick={toggleLanguage}
-          className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors p-2"
-        >
-          {i18n.language === 'es' ? 'English' : 'Español'}
-        </button>
+        <LanguageToggle />
       </div>
 
       <motion.main 
