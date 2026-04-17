@@ -12,7 +12,7 @@
 
 @layer base {
   html, body, #root {
-    @apply h-screen overflow-hidden;
+    @apply min-h-screen;
   }
   body {
     @apply bg-background font-body text-slate-800;

@@ -63,9 +63,9 @@ const Patients = () => {
       const matchesSearch = nombre.includes(search) || apellido.includes(search) || documento.includes(search);
       
       // Lógica de inactivos refinada:
-      // Si showInactive es true: mostramos solo los que están desactivados (activo === false)
+      // Si showInactive es true: mostramos solo los que están desactivados (activo es false, 0 o "false")
       // Si showInactive es false: mostramos los activos (activo es true, null o undefined)
-      const isActuallyInactive = p.activo === false;
+      const isActuallyInactive = p.activo === false || p.activo === 0 || p.activo === 'false';
       const matchesStatus = showInactive ? isActuallyInactive : !isActuallyInactive;
       
       return matchesSearch && matchesStatus;

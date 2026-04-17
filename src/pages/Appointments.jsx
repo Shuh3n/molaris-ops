@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase';
 import AppointmentModal from '../components/AppointmentModal';
 import ConfirmModal from '../components/ConfirmModal';
 import { motion, AnimatePresence } from 'framer-motion';
-import { startOfToday, startOfWeek, startOfMonth, isSameDay, isWithinInterval, endOfToday, endOfWeek, endOfMonth } from 'date-fns';
 import { useToast } from '../components/ToastContext';
+import { isSameDay, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
 const Appointments = () => {
   const { t, i18n } = useTranslation();

@@ -6,7 +6,6 @@ import PatientSearch from './PatientSearch';
 import CustomSelect from './CustomSelect';
 import CustomDatePicker from './CustomDatePicker';
 import CustomTimePicker from './CustomTimePicker';
-import { isBefore, startOfToday } from 'date-fns';
 
 const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
   const { t } = useTranslation();
@@ -108,8 +107,11 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
 
   const validateStep = (s) => {
     if (s === 2) {
-      const selectedDate = new Date(formData.fecha);
-      if (isBefore(selectedDate, startOfToday()) && formData.fecha !== new Date().toISOString().split('T')[0]) {
+      const selectedDate = new Date(formData.fecha + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
         setError(t('appointments.modal.past_date_error'));
         return false;
       }

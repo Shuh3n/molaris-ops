@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import LanguageToggle from '../components/LanguageToggle';
 import AppointmentModal from '../components/AppointmentModal';
 import { useToast } from '../components/ToastContext';
 
 const DashboardRecepcionista = () => {
+  const { t } = useTranslation();
   const [isPinned, setIsPinned] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
@@ -169,12 +171,12 @@ const DashboardRecepcionista = () => {
               </div>
 
               <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto no-scrollbar">
-                <NavItem to="/dashboard/recepcionista" end icon="dashboard" label="Dashboard" expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/citas" icon="calendar_today" label="Citas" expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/facturacion" icon="payments" label="Facturación" expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/pacientes" icon="group" label="Pacientes" expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/notificaciones" icon="notifications" label="Notificaciones" expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/ajustes" icon="settings" label="Ajustes" expanded={isExpanded} />
+                <NavItem to="/dashboard/recepcionista" end icon="dashboard" label={t('common.dashboard')} expanded={isExpanded} />
+                <NavItem to="/dashboard/recepcionista/citas" icon="calendar_today" label={t('common.appointments')} expanded={isExpanded} />
+                <NavItem to="/dashboard/recepcionista/facturacion" icon="payments" label={t('common.billing')} expanded={isExpanded} />
+                <NavItem to="/dashboard/recepcionista/pacientes" icon="group" label={t('common.patients')} expanded={isExpanded} />
+                <NavItem to="/dashboard/recepcionista/notificaciones" icon="notifications" label={t('common.notifications')} expanded={isExpanded} />
+                <NavItem to="/dashboard/recepcionista/ajustes" icon="settings" label={t('common.settings')} expanded={isExpanded} />
               </nav>
 
               <div className="mt-auto p-3 border-t border-slate-100">
@@ -183,13 +185,13 @@ const DashboardRecepcionista = () => {
                   {isExpanded && (
                     <div className="flex flex-col overflow-hidden whitespace-nowrap">
                       <span className="truncate font-bold text-slate-900">{userProfile?.nombre_completo || 'Usuario'}</span>
-                      <span className="text-[10px] text-slate-400 font-black uppercase truncate">Recepcionista</span>
+                      <span className="text-[10px] text-slate-400 font-black uppercase truncate">{t('settings.access.front')}</span>
                     </div>
                   )}
                 </motion.div>
                 <button onClick={handleLogout} className={`w-full flex items-center ${isExpanded ? 'gap-3 px-4' : 'justify-center'} py-3 text-red-500 hover:bg-red-50 transition-all duration-300 rounded-xl font-bold text-sm group cursor-pointer overflow-hidden`}>
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform shrink-0">logout</span>
-                  {isExpanded && <span className="whitespace-nowrap">Cerrar Sesión</span>}
+                  {isExpanded && <span className="whitespace-nowrap">{t('common.logout')}</span>}
                 </button>
               </div>
             </motion.aside>
@@ -202,7 +204,7 @@ const DashboardRecepcionista = () => {
           <div className="flex items-center flex-1 max-w-xl">
             <div className="relative w-full group">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-              <input className="w-full pl-12 pr-6 py-3 bg-slate-100/50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-slate-400 font-medium" placeholder="Buscar pacientes, citas o doctores..." type="text" />
+              <input className="w-full pl-12 pr-6 py-3 bg-slate-100/50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-slate-400 font-medium" placeholder={t('common.search')} type="text" />
             </div>
           </div>
           <div className="flex items-center gap-4 lg:gap-8 ml-4">
@@ -217,7 +219,7 @@ const DashboardRecepcionista = () => {
             </div>
             <button onClick={() => setIsAppointmentModalOpen(true)} className="bg-primary text-white px-4 lg:px-6 py-3 rounded-2xl font-black text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
               <span className="material-symbols-outlined text-lg">add_circle</span>
-              <span className="hidden sm:inline uppercase tracking-widest text-xs">Nueva Cita</span>
+              <span className="hidden sm:inline uppercase tracking-widest text-xs">{t('appointments.new_appointment')}</span>
             </button>
           </div>
         </header>
@@ -225,7 +227,7 @@ const DashboardRecepcionista = () => {
         <div className="flex-1 overflow-hidden relative">
           <div className="absolute inset-0 scroll-container">
             <motion.div key={location.pathname} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.3 }} className="p-6 lg:p-10">
-              {location.pathname === '/dashboard/recepcionista' ? <DashboardHome userProfile={userProfile} /> : <Outlet />}
+              {location.pathname === '/dashboard/recepcionista' ? <DashboardHome userProfile={userProfile} t={t} /> : <Outlet />}
             </motion.div>
           </div>
         </div>
@@ -240,66 +242,79 @@ const DashboardRecepcionista = () => {
   );
 };
 
-const DashboardHome = ({ userProfile }) => (
-  <div>
-    <div className="mb-10">
-      <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900">Bienvenido, {userProfile?.nombre_completo?.split(' ')[0]}</h2>
-      <p className="text-slate-500 font-medium italic mt-1 opacity-70">Hoy es lunes, 21 de octubre de 2026</p>
-    </div>
-
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-      <div className="xl:col-span-2 space-y-8">
-        <section className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-          <div className="px-8 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
-            <div>
-              <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">Horario Semanal</h2>
-              <p className="text-slate-900 font-black text-lg mt-1 tracking-tight">Octubre 21 — 27, 2026</p>
-            </div>
-            <span className="material-symbols-outlined text-primary bg-white p-2 rounded-xl shadow-sm border border-slate-50">calendar_view_week</span>
-          </div>
-          <div className="grid grid-cols-7 border-b border-slate-50 bg-slate-50/20">
-              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-                <div key={d} className="p-4 text-[10px] font-black text-slate-400 uppercase text-center border-r border-slate-100 last:border-r-0">{d}</div>
-              ))}
-          </div>
-          <div className="h-[400px] flex items-center justify-center bg-white relative overflow-hidden group">
-            <div className="flex flex-col items-center gap-4 text-slate-300 relative z-10">
-              <span className="material-symbols-outlined text-6xl group-hover:scale-110 transition-transform duration-500">calendar_month</span>
-              <p className="italic text-sm font-medium">Cargando horario dinámico...</p>
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50/50"></div>
-          </div>
-        </section>
+const DashboardHome = ({ userProfile, t }) => {
+  const { i18n } = useTranslation();
+  const currentLocale = i18n.language.startsWith('es') ? 'es-ES' : 'en-US';
+  
+  return (
+    <div>
+      <div className="mb-10 text-left">
+        <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900">
+          {t('dashboard.welcome').split(',')[0]}, {userProfile?.nombre_completo?.split(' ')[0]}
+        </h2>
+        <p className="text-slate-500 font-medium italic mt-1 opacity-70">
+          {new Date().toLocaleDateString(currentLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
       </div>
 
-      <div className="space-y-8">
-        <section className="bg-primary rounded-[2.5rem] p-10 text-white shadow-xl shadow-primary/20 relative overflow-hidden">
-          <div className="relative z-10">
-            <h3 className="text-2xl font-black mb-2 tracking-tight">Resumen del Día</h3>
-            <p className="text-blue-100 text-sm font-medium mb-10 opacity-80 uppercase tracking-widest text-[10px] font-black">12 citas programadas para hoy</p>
-            <div className="space-y-6">
-              <div className="bg-white/10 backdrop-blur-md rounded-[1.8rem] p-6 flex items-center justify-between border border-white/5 group hover:bg-white/20 transition-all cursor-pointer">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Completadas</span>
-                  <p className="text-3xl font-black mt-1">4</p>
-                </div>
-                <span className="material-symbols-outlined text-4xl opacity-30">check_circle</span>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-2 space-y-8">
+          <section className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div className="px-8 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30 text-left">
+              <div>
+                <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('dashboard.schedule.title')}</h2>
+                <p className="text-slate-900 font-black text-lg mt-1 tracking-tight">
+                  {new Date().toLocaleDateString(currentLocale, { month: 'long', day: 'numeric' })} — {new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString(currentLocale, { month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-[1.8rem] p-6 flex items-center justify-between border border-white/5 group hover:bg-white/20 transition-all cursor-pointer">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Pendientes</span>
-                  <p className="text-3xl font-black mt-1">8</p>
+              <span className="material-symbols-outlined text-primary bg-white p-2 rounded-xl shadow-sm border border-slate-50">calendar_view_week</span>
+            </div>
+            <div className="grid grid-cols-7 border-b border-slate-50 bg-slate-50/20">
+                {['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'].map(d => (
+                  <div key={d} className="p-4 text-[10px] font-black text-slate-400 uppercase text-center border-r border-slate-100 last:border-r-0">
+                    {t(`common.days.${d}`)}
+                  </div>
+                ))}
+            </div>
+            <div className="h-[400px] flex items-center justify-center bg-white relative overflow-hidden group">
+              <div className="flex flex-col items-center gap-4 text-slate-300 relative z-10">
+                <span className="material-symbols-outlined text-6xl group-hover:scale-110 transition-transform duration-500">calendar_month</span>
+                <p className="italic text-sm font-medium">Cargando horario dinámico...</p>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50/50"></div>
+            </div>
+          </section>
+        </div>
+
+        <div className="space-y-8">
+          <section className="bg-primary rounded-[2.5rem] p-10 text-white shadow-xl shadow-primary/20 relative overflow-hidden text-left">
+            <div className="relative z-10">
+              <h3 className="text-2xl font-black mb-2 tracking-tight">{t('dashboard.quick_actions.title')}</h3>
+              <p className="text-blue-100 text-sm font-medium mb-10 opacity-80 uppercase tracking-widest text-[10px] font-black">{t('dashboard.glance')}</p>
+              <div className="space-y-6">
+                <div className="bg-white/10 backdrop-blur-md rounded-[1.8rem] p-6 flex items-center justify-between border border-white/5 group hover:bg-white/20 transition-all cursor-pointer">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-70">{t('dashboard.stats.appointments')}</span>
+                    <p className="text-3xl font-black mt-1">4</p>
+                  </div>
+                  <span className="material-symbols-outlined text-4xl opacity-30">check_circle</span>
                 </div>
-                <span className="material-symbols-outlined text-4xl opacity-30">pending</span>
+                <div className="bg-white/10 backdrop-blur-md rounded-[1.8rem] p-6 flex items-center justify-between border border-white/5 group hover:bg-white/20 transition-all cursor-pointer">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-70">{t('dashboard.stats.pending')}</span>
+                    <p className="text-3xl font-black mt-1">8</p>
+                  </div>
+                  <span className="material-symbols-outlined text-4xl opacity-30">pending</span>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="absolute top-[-20%] right-[-20%] w-56 h-56 bg-white/10 rounded-full blur-3xl"></div>
-        </section>
+            <div className="absolute top-[-20%] right-[-20%] w-56 h-56 bg-white/10 rounded-full blur-3xl"></div>
+          </section>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const NavItem = ({ to, icon, label, expanded = false, end = false }) => (
   <motion.div whileHover={{ x: expanded ? 5 : 0 }} whileActive={{ scale: 0.98 }}>
