@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const CustomSelect = ({ label, options, value, onChange, placeholder, icon, searchPlaceholder = "Buscar..." }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
   const containerRef = useRef(null);
 
   const selectedOption = options.find(opt => opt.id === value);
@@ -18,13 +19,36 @@ const CustomSelect = ({ label, options, value, onChange, placeholder, icon, sear
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('scroll', updateCoords);
+      window.addEventListener('resize', updateCoords);
+    }
+    return () => {
+      window.removeEventListener('scroll', updateCoords);
+      window.removeEventListener('resize', updateCoords);
+    };
+  }, [isOpen]);
+
   const filteredOptions = options.filter(opt => 
-    opt.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+    (opt.nombre || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="space-y-3" ref={containerRef}>
-      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{label}</label>
+    <div className="space-y-3 relative" ref={containerRef}>
+      {label && <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{label}</label>}
       <div className="relative">
         <button
           type="button"
@@ -48,7 +72,13 @@ const CustomSelect = ({ label, options, value, onChange, placeholder, icon, sear
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 5, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute z-[110] w-full bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden mt-1"
+              className="fixed z-[9999] bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden mt-1"
+              style={{ 
+                top: coords.top, 
+                left: coords.left, 
+                width: coords.width,
+                maxHeight: '300px'
+              }}
             >
               {options.length > 5 && (
                 <div className="p-3 border-b border-slate-50">
@@ -66,7 +96,7 @@ const CustomSelect = ({ label, options, value, onChange, placeholder, icon, sear
                 </div>
               )}
               
-              <div className="max-h-[250px] overflow-y-auto no-scrollbar py-2">
+              <div className="max-h-[200px] overflow-y-auto no-scrollbar py-2">
                 {filteredOptions.length === 0 ? (
                   <div className="px-6 py-8 text-center text-slate-400">
                     <span className="material-symbols-outlined text-3xl mb-2 opacity-20">search_off</span>

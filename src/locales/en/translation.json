@@ -44,6 +44,9 @@
     "settings": "Settings",
     "clinic_slogan": "Dental Sanctuary",
     "export": "Export",
+    "confirm_delete_title": "Confirm Deletion",
+    "confirm_delete_message": "Are you sure you want to delete this record? This action will hide the patient but you can recover them later.",
+    "reactivate": "Reactivate",
     "actions": {
       "view": "View",
       "edit": "Edit",
@@ -52,7 +55,10 @@
       "download": "Download",
       "save": "Save",
       "cancel": "Cancel",
-      "discard": "Discard"
+      "discard": "Discard",
+      "next": "Next",
+      "back": "Back",
+      "confirm": "Confirm"
     }
   },
   "dashboard": {
@@ -147,6 +153,8 @@
     "subtitle": "Manage your practice's patient directory. Access contact details and scheduled visits at a glance.",
     "filter": "Filter",
     "export_list": "Export List",
+    "search_placeholder": "Search by name, last name or ID...",
+    "show_inactive": "Show Inactive",
     "table": {
       "identity": "Patient Identity",
       "phone": "Phone Number",
@@ -157,7 +165,8 @@
       "checked_in": "Checked In",
       "completed": "Completed",
       "follow_up": "Follow-up Required",
-      "new": "New Patient"
+      "new": "New Patient",
+      "inactive": "Inactive"
     },
     "pulse": {
       "title": "Practice Pulse",
@@ -174,18 +183,81 @@
       "title_create": "Register New Patient",
       "title_edit": "Edit Patient Profile",
       "subtitle": "Complete the necessary information to manage the patient's history.",
-      "first_name": "First Name",
-      "last_name": "Last Name",
-      "phone": "Phone Number",
-      "document_id": "Document ID",
+      "steps": {
+        "identity": "Identity",
+        "contact": "Contact",
+        "clinical": "Clinical",
+        "responsible": "Responsible"
+      },
+      "first_name": "First Names",
+      "last_name": "Last Names",
+      "phone": "Primary Phone",
+      "phone_sec": "Secondary Phone",
+      "document_id": "Document ID / SSN",
       "birth_date": "Date of Birth",
+      "gender": "Gender",
+      "email": "Email Address",
+      "address": "Residential Address",
+      "occupation": "Occupation",
+      "allergies": "Allergies (Meds, Latex...)",
+      "illnesses": "Systemic Illnesses",
+      "needs_companion": "Needs Companion / Responsible",
+      "resp_name": "Responsible Name",
+      "resp_id": "Responsible ID",
+      "resp_rel": "Relationship",
       "save": "Save Patient",
       "cancel": "Cancel",
       "loading": "Processing...",
       "success_create": "Patient registered successfully",
       "success_update": "Patient updated successfully",
       "success_delete": "Patient removed from directory",
-      "error": "An error occurred while processing the request"
+      "success_reactivate": "Patient reactivated successfully",
+      "error": "An error occurred while processing the request",
+      "validation": {
+        "phone": "Enter a valid phone (7-15 digits)",
+        "id": "Enter a valid ID (min 6 digits)",
+        "resp_required": "Responsible data is mandatory"
+      }
+    }
+  },
+  "appointments": {
+    "title": "Appointments",
+    "subtitle": "Manage your practice's appointment calendar. Schedule new visits and keep patient flow organized.",
+    "new_appointment": "New Appointment",
+    "filter": "Filter",
+    "filters": {
+      "today": "Today",
+      "week": "Week",
+      "month": "Month",
+      "all": "All"
+    },
+    "table": {
+      "patient": "Patient",
+      "date": "Date and Time",
+      "dentist": "Dentist",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "programada": "Scheduled",
+      "completada": "Completed",
+      "cancelada": "Cancelled",
+      "noshow": "No Show"
+    },
+    "modal": {
+      "title_create": "New Appointment",
+      "title_edit": "Edit Appointment",
+      "subtitle": "Complete the details to schedule the appointment.",
+      "patient_search": "Search Patient",
+      "date": "Appointment Date",
+      "time": "Time Slot",
+      "dentist": "Responsible Dentist",
+      "reason": "Reason for Visit",
+      "notes": "Observation / Medical Notes",
+      "save": "Confirm Appointment",
+      "cancel": "Cancel",
+      "loading": "Processing...",
+      "past_date_error": "Cannot schedule appointments in past dates"
     }
   },
   "settings": {

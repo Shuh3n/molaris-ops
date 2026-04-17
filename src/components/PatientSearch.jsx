@@ -33,17 +33,35 @@ const PatientSearch = ({ onSelect, selectedPatient }) => {
       }
 
       setLoading(true);
-      const { data, error } = await supabase
-        .from('pacientes')
-        .select('*')
-        .or(`nombre.ilike.%${searchTerm}%,apellido.ilike.%${searchTerm}%`)
-        .eq('activo', true)
-        .limit(5);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
 
-      if (!error) {
-        setResults(data);
+        // 1. Obtener mi clinica_id para buscar solo en mi clínica
+        const { data: profile } = await supabase
+          .from('perfiles')
+          .select('clinica_id')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.clinica_id) {
+          const { data, error } = await supabase
+            .from('pacientes')
+            .select('*')
+            .eq('clinica_id', profile.clinica_id)
+            .or(`nombre.ilike.%${searchTerm}%,apellido.ilike.%${searchTerm}%`)
+            .eq('activo', true)
+            .limit(5);
+
+          if (!error) {
+            setResults(data);
+          }
+        }
+      } catch (err) {
+        console.error("Error searching patients:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     const timeoutId = setTimeout(searchPatients, 300);
@@ -102,7 +120,7 @@ const PatientSearch = ({ onSelect, selectedPatient }) => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-slate-900">{patient.nombre} {patient.apellido}</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{patient.telefono || 'Sin teléfono'}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{patient.documento_id || 'Sin ID'}</p>
                 </div>
               </button>
             ))}

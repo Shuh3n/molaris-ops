@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import PatientSearch from './PatientSearch';
 import CustomSelect from './CustomSelect';
+import CustomDatePicker from './CustomDatePicker';
+import CustomTimePicker from './CustomTimePicker';
+import { isBefore, startOfToday } from 'date-fns';
 
 const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
   const { t } = useTranslation();
@@ -12,6 +15,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
   const [motivos, setMotivos] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [direction, setDirection] = useState(1);
+  const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
     paciente_id: '',
@@ -32,7 +36,6 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        // 1. Obtenemos mi propia clinica_id para filtrar
         const { data: myProfile } = await supabase
           .from('perfiles')
           .select('clinica_id')
@@ -40,7 +43,6 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
           .single();
 
         if (myProfile?.clinica_id) {
-          // 2. Buscamos el ID del rol ORTODONCISTA
           const { data: roleData } = await supabase
             .from('roles')
             .select('id')
@@ -48,10 +50,9 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
             .single();
 
           if (roleData) {
-            // 3. Buscamos dentistas de MI clínica
             const { data: profileData } = await supabase
               .from('perfiles')
-              .select('id, nombre:nombre_completo') // Renombramos para el CustomSelect
+              .select('id, nombre:nombre_completo')
               .eq('rol_id', roleData.id)
               .eq('clinica_id', myProfile.clinica_id);
             
@@ -59,7 +60,6 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
           }
         }
 
-        // 4. Traer motivos
         const { data: motifsData } = await supabase
           .from('motivos_consulta')
           .select('id, nombre')
@@ -103,9 +103,23 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
       setSelectedPatient(null);
     }
     setStep(1);
+    setError('');
   }, [appointment, isOpen]);
 
+  const validateStep = (s) => {
+    if (s === 2) {
+      const selectedDate = new Date(formData.fecha);
+      if (isBefore(selectedDate, startOfToday()) && formData.fecha !== new Date().toISOString().split('T')[0]) {
+        setError(t('appointments.modal.past_date_error'));
+        return false;
+      }
+    }
+    setError('');
+    return true;
+  };
+
   const handleSubmit = async () => {
+    if (!validateStep(3)) return;
     setIsSubmitting(true);
     try {
       const fechaHora = new Date(`${formData.fecha}T${formData.hora}`).toISOString();
@@ -131,18 +145,21 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col min-h-[550px]">
+            className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col min-h-[600px]">
             
-            {/* Stepper Header */}
             <div className="px-10 pt-10 pb-6 shrink-0">
               <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">{appointment ? 'Editar Cita' : 'Nueva Cita'}</h3>
+                <div className="text-left">
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                    {appointment ? t('appointments.modal.title_edit') : t('appointments.modal.title_create')}
+                  </h3>
                   <div className="flex items-center gap-2 mt-1">
                     {[1, 2, 3].map((s) => (
                       <div key={s} className={`h-1 rounded-full transition-all duration-500 ${step === s ? 'w-8 bg-primary' : 'w-2 bg-slate-100'}`} />
                     ))}
-                    <span className="text-slate-400 font-bold text-[10px] uppercase tracking-widest ml-2">Paso {step} de 3</span>
+                    <span className="text-slate-400 font-bold text-[10px] uppercase tracking-widest ml-2">
+                      {t('common.actions.next')} {step} {t('common.actions.back').toLowerCase()} 3
+                    </span>
                   </div>
                 </div>
                 <button onClick={onClose} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
@@ -151,14 +168,13 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
               </div>
             </div>
 
-            {/* Content Area */}
             <div className="flex-1 px-10 py-4 relative overflow-hidden">
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div key={step} custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="w-full h-full">
                   {step === 1 && (
-                    <div className="space-y-8">
+                    <div className="space-y-8 text-left">
                       <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Seleccionar Paciente</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('appointments.modal.patient_search')}</label>
                         <PatientSearch selectedPatient={selectedPatient} onSelect={(p) => { setSelectedPatient(p); setFormData({...formData, paciente_id: p.id}); }} />
                       </div>
                       <div className="p-8 rounded-[2rem] bg-slate-50 border border-slate-100 flex flex-col items-center text-center gap-4">
@@ -166,33 +182,31 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                           <span className="material-symbols-outlined text-primary text-3xl">person_search</span>
                         </div>
                         <p className="text-slate-500 font-medium text-sm leading-relaxed">
-                          Buscá al paciente por su nombre para vincularlo a la nueva cita. Si es nuevo, recordá registrarlo primero en la sección de pacientes.
+                          {t('billing.modal.search_placeholder')}
                         </p>
                       </div>
                     </div>
                   )}
 
                   {step === 2 && (
-                    <div className="space-y-8">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Fecha de la Cita</label>
-                          <div className="relative">
-                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">calendar_today</span>
-                            <input type="date" value={formData.fecha} onChange={(e) => setFormData({...formData, fecha: e.target.value})} className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Horario</label>
-                          <div className="relative">
-                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">schedule</span>
-                            <input type="time" value={formData.hora} onChange={(e) => setFormData({...formData, hora: e.target.value})} className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
-                          </div>
-                        </div>
+                    <div className="space-y-8 text-left">
+                      {error && <p className="p-3 bg-red-50 text-red-500 text-[10px] font-black rounded-xl text-center uppercase tracking-widest border border-red-100">{error}</p>}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <CustomDatePicker 
+                          label={t('appointments.modal.date')}
+                          value={formData.fecha}
+                          onChange={(val) => { setFormData({...formData, fecha: val}); setError(''); }}
+                          minDate={new Date()}
+                        />
+                        <CustomTimePicker 
+                          label={t('appointments.modal.time')}
+                          value={formData.hora}
+                          onChange={(val) => setFormData({...formData, hora: val})}
+                        />
                       </div>
                       
                       <CustomSelect 
-                        label="Dentista Responsable"
+                        label={t('appointments.modal.dentist')}
                         options={dentists}
                         value={formData.dentista_id}
                         onChange={(val) => setFormData({...formData, dentista_id: val})}
@@ -204,9 +218,9 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                   )}
 
                   {step === 3 && (
-                    <div className="space-y-8">
+                    <div className="space-y-8 text-left">
                       <CustomSelect 
-                        label="Motivo de la Consulta"
+                        label={t('appointments.modal.reason')}
                         options={motivos}
                         value={formData.motivo_id}
                         onChange={(val) => setFormData({...formData, motivo_id: val})}
@@ -216,8 +230,8 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                       />
 
                       <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Observaciones / Notas Medicas</label>
-                        <textarea value={formData.notas_medicas} onChange={(e) => setFormData({...formData, notas_medicas: e.target.value})} rows="4" placeholder="Algún detalle relevante para el doctor..."
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('appointments.modal.notes')}</label>
+                        <textarea value={formData.notas_medicas} onChange={(e) => setFormData({...formData, notas_medicas: e.target.value})} rows="4" placeholder="Algún detalle relevante..."
                           className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none" />
                       </div>
                     </div>
@@ -226,24 +240,23 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
               </AnimatePresence>
             </div>
 
-            {/* Navigation Footer */}
             <div className="px-10 py-8 shrink-0 flex justify-between gap-4 border-t border-slate-50">
               {step > 1 ? (
                 <button onClick={() => {setDirection(-1); setStep(s => s-1);}} className="px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg">west</span> Anterior
+                  <span className="material-symbols-outlined text-lg">west</span> {t('common.actions.back')}
                 </button>
               ) : <div />}
               
               {step < 3 ? (
-                <button onClick={() => {setDirection(1); setStep(s => s+1);}} disabled={step === 1 && !formData.paciente_id} 
+                <button onClick={() => { if(validateStep(step)) { setDirection(1); setStep(s => s+1); } }} disabled={step === 1 && !formData.paciente_id} 
                   className="bg-primary text-white px-10 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2">
-                  Siguiente <span className="material-symbols-outlined text-lg">east</span>
+                  {t('common.actions.next')} <span className="material-symbols-outlined text-lg">east</span>
                 </button>
               ) : (
                 <button onClick={handleSubmit} disabled={isSubmitting || !formData.motivo_id} 
                   className="bg-[#10B981] text-white px-12 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] shadow-xl shadow-[#10B981]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
                   {isSubmitting && <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full" />}
-                  Confirmar Cita <span className="material-symbols-outlined text-lg">task_alt</span>
+                  {t('appointments.modal.save')} <span className="material-symbols-outlined text-lg">task_alt</span>
                 </button>
               )}
             </div>

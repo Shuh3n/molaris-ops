@@ -44,6 +44,9 @@
     "settings": "Ajustes",
     "clinic_slogan": "Santuario Dental",
     "export": "Exportar",
+    "confirm_delete_title": "Confirmar Eliminación",
+    "confirm_delete_message": "¿Estás seguro de que deseas eliminar este registro? Esta acción ocultará al paciente pero podrás recuperarlo después.",
+    "reactivate": "Reactivar",
     "actions": {
       "view": "Ver",
       "edit": "Editar",
@@ -52,7 +55,10 @@
       "download": "Descargar",
       "save": "Guardar",
       "cancel": "Cancelar",
-      "discard": "Descartar"
+      "discard": "Descartar",
+      "next": "Siguiente",
+      "back": "Anterior",
+      "confirm": "Confirmar"
     }
   },
   "dashboard": {
@@ -147,6 +153,8 @@
     "subtitle": "Gestiona el directorio de pacientes de tu clínica. Accede a detalles de contacto y visitas programadas de un vistazo.",
     "filter": "Filtrar",
     "export_list": "Exportar Lista",
+    "search_placeholder": "Buscar por nombre, apellido o ID...",
+    "show_inactive": "Ver Inactivos",
     "table": {
       "identity": "Identidad del Paciente",
       "phone": "Número de Teléfono",
@@ -157,7 +165,8 @@
       "checked_in": "Registrado",
       "completed": "Completado",
       "follow_up": "Seguimiento Requerido",
-      "new": "Nuevo Paciente"
+      "new": "Nuevo Paciente",
+      "inactive": "Inactivo"
     },
     "pulse": {
       "title": "Pulso de la Clínica",
@@ -174,18 +183,46 @@
       "title_create": "Registrar Nuevo Paciente",
       "title_edit": "Editar Perfil del Paciente",
       "subtitle": "Completa la información necesaria para gestionar el historial del paciente.",
-      "first_name": "Nombre",
-      "last_name": "Apellido",
-      "phone": "Teléfono",
-      "document_id": "Documento de Identidad",
+      "steps": {
+        "identity": "Identificación",
+        "contact": "Contacto",
+        "clinical": "Clínico",
+        "responsible": "Representante"
+      },
+      "first_name": "Nombres",
+      "last_name": "Apellidos",
+      "phone": "Teléfono Principal",
+      "phone_sec": "Teléfono Secundario",
+      "document_id": "Documento ID / Cédula",
       "birth_date": "Fecha de Nacimiento",
+      "gender": "Género",
+      "genders": {
+        "male": "Masculino",
+        "female": "Femenino",
+        "other": "Otro"
+      },
+      "email": "Correo Electrónico",
+      "address": "Dirección de Residencia",
+      "occupation": "Ocupación",
+      "allergies": "Alergias (Medicamentos, Látex...)",
+      "illnesses": "Enfermedades Sistémicas",
+      "needs_companion": "Requiere Acompañante / Representante",
+      "resp_name": "Nombre del Representante",
+      "resp_id": "Cédula Representante",
+      "resp_rel": "Parentesco",
       "save": "Guardar Paciente",
       "cancel": "Cancelar",
       "loading": "Procesando...",
       "success_create": "Paciente registrado exitosamente",
       "success_update": "Paciente actualizado exitosamente",
       "success_delete": "Paciente eliminado del directorio",
-      "error": "Ocurrió un error al procesar la solicitud"
+      "success_reactivate": "Paciente reactivado exitosamente",
+      "error": "Ocurrió un error al procesar la solicitud",
+      "validation": {
+        "phone": "Ingrese un teléfono válido (7-15 dígitos)",
+        "id": "Ingrese una identificación válida (mín. 6 dígitos)",
+        "resp_required": "Los datos del representante son obligatorios"
+      }
     }
   },
   "appointments": {
@@ -193,6 +230,12 @@
     "subtitle": "Gestiona el calendario de citas de tu clínica. Programa nuevas visitas y mantén el flujo de pacientes organizado.",
     "new_appointment": "Nueva Cita",
     "filter": "Filtrar",
+    "filters": {
+      "today": "Hoy",
+      "week": "Semana",
+      "month": "Mes",
+      "all": "Todas"
+    },
     "table": {
       "patient": "Paciente",
       "date": "Fecha y Hora",
@@ -211,14 +254,15 @@
       "title_edit": "Editar Cita",
       "subtitle": "Completa los detalles para programar la cita.",
       "patient_search": "Buscar Paciente",
-      "date": "Fecha",
-      "time": "Hora",
-      "dentist": "Dentista",
-      "reason": "Motivo",
-      "notes": "Notas",
-      "save": "Guardar Cita",
+      "date": "Fecha de la Cita",
+      "time": "Horario",
+      "dentist": "Dentista Responsable",
+      "reason": "Motivo de la Consulta",
+      "notes": "Observaciones / Notas Médicas",
+      "save": "Confirmar Cita",
       "cancel": "Cancelar",
-      "loading": "Procesando..."
+      "loading": "Procesando...",
+      "past_date_error": "No se pueden programar citas en fechas pasadas"
     }
   },
   "settings": {
