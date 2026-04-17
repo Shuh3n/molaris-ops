@@ -168,6 +168,24 @@
     "tip": {
       "title": "Admin Tip",
       "desc": "Hover over a patient's name to see their preferred communication method."
+    },
+    "new_patient": "New Patient",
+    "modal": {
+      "title_create": "Register New Patient",
+      "title_edit": "Edit Patient Profile",
+      "subtitle": "Complete the necessary information to manage the patient's history.",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "phone": "Phone Number",
+      "document_id": "Document ID",
+      "birth_date": "Date of Birth",
+      "save": "Save Patient",
+      "cancel": "Cancel",
+      "loading": "Processing...",
+      "success_create": "Patient registered successfully",
+      "success_update": "Patient updated successfully",
+      "success_delete": "Patient removed from directory",
+      "error": "An error occurred while processing the request"
     }
   },
   "settings": {

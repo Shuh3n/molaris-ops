@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "supabase-mcp-server": {
+      "command": "node",
+      "args": [
+        "mcp-server/index.js"
+      ],
+      "env": {
+        "SUPABASE_URL": "$VITE_SUPABASE_URL",
+        "SUPABASE_ACCESS_TOKEN_MOLARIS": "$SUPABASE_ACCESS_TOCKEN_MOLARIS"
+      }
+    }
+  }
+}

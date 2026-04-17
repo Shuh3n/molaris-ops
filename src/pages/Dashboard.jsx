@@ -6,63 +6,70 @@ const Dashboard = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-[1600px] mx-auto">
       {/* Editorial Welcome */}
       <div className="mb-10">
-        <p className="text-primary font-bold tracking-widest text-xs uppercase mb-1">{t('dashboard.welcome')}</p>
-        <h2 className="text-4xl font-extrabold tracking-tight text-on-surface">{t('dashboard.glance')}</h2>
+        <p className="text-primary font-black tracking-[0.2em] text-[10px] uppercase mb-2 ml-1">{t('dashboard.welcome')}</p>
+        <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900">{t('dashboard.glance')}</h2>
       </div>
 
-      {/* Bento Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      {/* Bento Summary Cards - GRID RESPONSIVO */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
         {/* Today's Appointments */}
-        <div className="bg-white p-8 rounded-xl shadow-[0px_20px_40px_rgba(0,97,164,0.03)] flex flex-col justify-between min-h-[180px] border border-slate-50">
+        <div className="bg-white p-8 rounded-[2rem] shadow-sm flex flex-col justify-between min-h-[200px] border border-slate-100 group hover:shadow-lg transition-all duration-500">
           <div>
-            <span className="material-symbols-outlined text-primary mb-4">calendar_month</span>
-            <p className="text-slate-500 font-medium text-sm">{t('dashboard.stats.appointments')}</p>
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined">calendar_month</span>
+            </div>
+            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">{t('dashboard.stats.appointments')}</p>
           </div>
-          <div className="flex items-baseline gap-2">
-            <h3 className="text-5xl font-extrabold text-on-surface">8</h3>
-            <span className="text-green-600 font-bold text-sm flex items-center">
-              <span className="material-symbols-outlined text-sm">trending_up</span>
+          <div className="flex items-baseline gap-3 mt-4">
+            <h3 className="text-5xl font-black text-slate-900">8</h3>
+            <span className="text-green-600 font-black text-xs flex items-center bg-green-50 px-2 py-1 rounded-lg">
+              <span className="material-symbols-outlined text-sm mr-1">trending_up</span>
               12%
             </span>
           </div>
         </div>
 
         {/* Pending Confirmations */}
-        <div className="bg-white p-8 rounded-xl shadow-[0px_20px_40px_rgba(0,97,164,0.03)] flex flex-col justify-between min-h-[180px] border border-slate-50">
+        <div className="bg-white p-8 rounded-[2rem] shadow-sm flex flex-col justify-between min-h-[200px] border border-slate-100 group hover:shadow-lg transition-all duration-500">
           <div>
-            <span className="material-symbols-outlined text-amber-500 mb-4">pending_actions</span>
-            <p className="text-slate-500 font-medium text-sm">{t('dashboard.stats.pending')}</p>
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 mb-6 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined">pending_actions</span>
+            </div>
+            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">{t('dashboard.stats.pending')}</p>
           </div>
-          <div className="flex items-baseline gap-2">
-            <h3 className="text-5xl font-extrabold text-on-surface">3</h3>
-            <p className="text-slate-400 text-xs font-medium">Requiere atención</p>
+          <div className="flex items-baseline gap-3 mt-4">
+            <h3 className="text-5xl font-black text-slate-900">3</h3>
+            <p className="text-amber-600 text-[10px] font-black uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-lg">Atención</p>
           </div>
         </div>
 
         {/* Revenue Summary */}
-        <div className="bg-gradient-to-br from-primary to-blue-500 p-8 rounded-xl shadow-xl shadow-primary/10 flex flex-col justify-between min-h-[180px] text-white">
-          <div>
-            <span className="material-symbols-outlined mb-4" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
-            <p className="text-blue-100 font-medium text-sm">{t('dashboard.stats.weekly')}</p>
+        <div className="bg-gradient-to-br from-primary to-blue-500 p-8 rounded-[2rem] shadow-xl shadow-primary/20 flex flex-col justify-between min-h-[200px] text-white relative overflow-hidden group md:col-span-2 xl:col-span-1">
+          <div className="relative z-10">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
+            </div>
+            <p className="text-blue-100 font-bold text-[10px] uppercase tracking-widest opacity-80">{t('dashboard.stats.weekly')}</p>
           </div>
-          <div>
-            <h3 className="text-4xl font-extrabold">$12,450</h3>
-            <p className="text-blue-100 text-xs opacity-80 mt-1">{t('dashboard.stats.projected')}: $15,000</p>
+          <div className="relative z-10 mt-4">
+            <h3 className="text-4xl font-black">$12,450</h3>
+            <p className="text-blue-100 text-[10px] font-bold uppercase tracking-widest opacity-60 mt-1">{t('dashboard.stats.projected')}: $15,000</p>
           </div>
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
         {/* Main Schedule View */}
-        <div className="lg:col-span-8 space-y-10">
+        <div className="xl:col-span-8 space-y-10">
           <section>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold tracking-tight">{t('dashboard.schedule.title')}</h3>
-              <button className="text-primary text-sm font-bold flex items-center gap-1 hover:underline cursor-pointer">
-                {t('dashboard.schedule.view_all')} <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            <div className="flex items-center justify-between mb-8 px-2">
+              <h3 className="text-2xl font-black tracking-tight text-slate-900">{t('dashboard.schedule.title')}</h3>
+              <button className="text-primary text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:translate-x-1 transition-transform cursor-pointer">
+                {t('dashboard.schedule.view_all')} <span className="material-symbols-outlined text-lg">arrow_forward</span>
               </button>
             </div>
             <div className="space-y-4">
@@ -72,7 +79,7 @@ const Dashboard = () => {
                 name="Sarah Jenkins" 
                 service="Limpieza Anual y Rayos X" 
                 status="Confirmado" 
-                statusColor="bg-green-100 text-green-700"
+                statusColor="bg-green-50 text-green-700"
                 img="https://lh3.googleusercontent.com/aida-public/AB6AXuCEZKc4F41z2AtzqnjqlCSg9YHsgaLhOUiyv-y4QXkADi2xYF2LE_WX5_5VQ2MLNNQ74KW_vMoGMTalByO2krms_W_hhiWviSpXnBaG9OC4dEc5k1MDNDt7g7emymaHwf9onwJhY5mJocuF018GMTjgxkBTaZx8eiTNMZ-65nRmLVT0X9pPb-KQdq6t-3pOGx00VBFkjqk1YcUcbE__XvR-5boduJ0hfgmys8SY7d0zYMocBZna5SVfZPwip7AB0nL8WPu9kmrF"
               />
               <AppointmentItem 
@@ -81,7 +88,7 @@ const Dashboard = () => {
                 name="Marcus Thompson" 
                 service="Seguimiento de Endodoncia" 
                 status="En Progreso" 
-                statusColor="bg-amber-100 text-amber-700"
+                statusColor="bg-amber-50 text-amber-700"
                 primaryTime
               />
               <AppointmentItem 
@@ -90,7 +97,7 @@ const Dashboard = () => {
                 name="David Chen" 
                 service="Consulta de Muela del Juicio" 
                 status="En Espera" 
-                statusColor="bg-slate-100 text-slate-600"
+                statusColor="bg-slate-50 text-slate-500"
                 img="https://lh3.googleusercontent.com/aida-public/AB6AXuAAFh7B5eTdi8J_8KaiXObpgcp5p1aYNjYvNojtYkJPd9Y91gZ1iTzmSd5gpZXK7HpU6TWZOFAzvUWbsDF77suZGu8i1__TacBb24MSL3FQ7uIKG9P2f7zOTIWfhngm64-DZybBq983Z-pQc1KYVeGTX5vj5vtehUidciHeyIr9KPG0fAECGFjhRQucHERTN2JbuekZEk9-QGKGRtpQIxNALopM2JiDD-xrQ1a7wyeGE6K5qlpcUNieBBGVKihZlS0eRZb8M2XD"
               />
             </div>
@@ -98,11 +105,11 @@ const Dashboard = () => {
         </div>
 
         {/* Sidebar Content */}
-        <div className="lg:col-span-4 space-y-8">
+        <div className="xl:col-span-4 space-y-10">
           {/* Quick Actions */}
-          <div className="bg-slate-50 p-8 rounded-xl border border-slate-100">
-            <h3 className="text-lg font-bold mb-6">{t('dashboard.quick_actions.title')}</h3>
-            <div className="space-y-3">
+          <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8 ml-1">{t('dashboard.quick_actions.title')}</h3>
+            <div className="space-y-4">
               <QuickActionButton icon="add_circle" label={t('dashboard.quick_actions.create')} color="blue" />
               <QuickActionButton icon="description" label={t('dashboard.quick_actions.invoice')} color="green" />
               <QuickActionButton icon="history" label={t('dashboard.quick_actions.history')} color="amber" />
@@ -110,25 +117,21 @@ const Dashboard = () => {
           </div>
 
           {/* Mini Calendar */}
-          <div className="bg-white p-8 rounded-xl shadow-[0px_20px_40px_rgba(0,97,164,0.03)] border border-slate-50">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-bold">Octubre 2026</h3>
+          <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div className="flex items-center justify-between mb-8 px-1">
+              <h3 className="font-black text-slate-900 tracking-tight">Octubre 2026</h3>
               <div className="flex gap-2">
-                <button className="material-symbols-outlined text-slate-400 text-lg hover:text-primary transition-colors cursor-pointer">chevron_left</button>
-                <button className="material-symbols-outlined text-slate-400 text-lg hover:text-primary transition-colors cursor-pointer">chevron_right</button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:text-primary transition-colors cursor-pointer"><span className="material-symbols-outlined text-lg">chevron_left</span></button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:text-primary transition-colors cursor-pointer"><span className="material-symbols-outlined text-lg">chevron_right</span></button>
               </div>
             </div>
-            <div className="grid grid-cols-7 gap-y-4 text-center text-xs">
-              {['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'].map(d => <span key={d} className="text-slate-400 font-bold uppercase">{d}</span>)}
+            <div className="grid grid-cols-7 gap-y-2 text-center text-[10px]">
+              {['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'].map(d => <span key={d} className="text-slate-300 font-black uppercase">{d}</span>)}
               {Array.from({ length: 31 }, (_, i) => (
-                <span key={i} className={`py-2 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors ${i+1 === 21 ? 'font-bold text-primary border border-primary/20 bg-primary/5' : ''}`}>
+                <span key={i} className={`py-2 rounded-xl cursor-pointer hover:bg-blue-50 transition-colors font-bold ${i+1 === 21 ? 'text-white bg-primary shadow-lg shadow-primary/20' : 'text-slate-500'}`}>
                   {i + 1}
                 </span>
               ))}
-            </div>
-            <div className="mt-6 pt-6 border-t border-slate-50">
-              <p className="text-xs text-slate-500 font-medium">{t('dashboard.calendar.upcoming')}</p>
-              <p className="text-sm font-bold text-primary mt-1">{t('dashboard.calendar.meeting')}</p>
             </div>
           </div>
         </div>
@@ -138,40 +141,44 @@ const Dashboard = () => {
 };
 
 const AppointmentItem = ({ time, period, name, service, status, statusColor, img, primaryTime }) => (
-  <div className="flex items-center gap-6 p-6 bg-white rounded-xl group hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 border border-slate-50">
-    <div className="text-center min-w-[60px]">
-      <p className={`text-xs font-bold uppercase tracking-tighter ${primaryTime ? 'text-primary' : 'text-slate-400'}`}>{time}</p>
-      <p className={`text-xs font-medium ${primaryTime ? 'text-primary' : 'text-slate-400'}`}>{period}</p>
+  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-6 bg-white rounded-2xl group hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 border border-slate-100">
+    <div className="flex items-center gap-4 sm:flex-col sm:gap-0 sm:min-w-[60px] sm:text-center border-b sm:border-b-0 sm:border-r border-slate-50 pb-3 sm:pb-0 sm:pr-4">
+      <p className={`text-xs font-black uppercase tracking-widest ${primaryTime ? 'text-primary' : 'text-slate-400'}`}>{time}</p>
+      <p className={`text-[10px] font-bold ${primaryTime ? 'text-primary opacity-60' : 'text-slate-300'}`}>{period}</p>
     </div>
-    <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
-      {img ? <img src={img} alt={name} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-slate-400">person</span>}
+    <div className="flex items-center gap-4 flex-1">
+      <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center overflow-hidden ring-1 ring-slate-100">
+        {img ? <img src={img} alt={name} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-slate-300">person</span>}
+      </div>
+      <div className="flex-1">
+        <h4 className="font-bold text-slate-900 tracking-tight">{name}</h4>
+        <p className="text-xs text-slate-400 font-medium line-clamp-1">{service}</p>
+      </div>
     </div>
-    <div className="flex-1">
-      <h4 className="font-bold text-slate-900">{name}</h4>
-      <p className="text-sm text-slate-500">{service}</p>
+    <div className="flex items-center justify-between sm:justify-end gap-4 mt-2 sm:mt-0">
+      <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
+        {status}
+      </div>
+      <button className="w-10 h-10 flex items-center justify-center text-slate-300 group-hover:text-primary transition-colors cursor-pointer hover:bg-slate-50 rounded-xl">
+        <span className="material-symbols-outlined">more_vert</span>
+      </button>
     </div>
-    <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusColor}`}>
-      {status}
-    </div>
-    <button className="p-2 text-slate-300 group-hover:text-primary transition-colors cursor-pointer">
-      <span className="material-symbols-outlined">more_vert</span>
-    </button>
   </div>
 );
 
 const QuickActionButton = ({ icon, label, color }) => {
     const colors = {
-        blue: "bg-blue-50 text-blue-600 hover:bg-blue-600",
-        green: "bg-green-50 text-green-600 hover:bg-green-600",
-        amber: "bg-amber-50 text-amber-600 hover:bg-amber-600"
+        blue: "bg-blue-50 text-primary group-hover:bg-primary",
+        green: "bg-green-50 text-green-600 group-hover:bg-green-600",
+        amber: "bg-amber-50 text-amber-600 group-hover:bg-amber-600"
     };
 
     return (
-        <button className="w-full bg-white hover:bg-white text-slate-700 p-4 rounded-xl flex items-center gap-4 transition-all duration-300 group shadow-sm border border-slate-100 cursor-pointer">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${colors[color]} group-hover:text-white`}>
+        <button className="w-full bg-white hover:shadow-md text-slate-700 p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 group border border-slate-100 cursor-pointer">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 ${colors[color]} group-hover:text-white group-hover:scale-110 group-hover:rotate-6 shadow-sm`}>
                 <span className="material-symbols-outlined">{icon}</span>
             </div>
-            <span className="font-semibold text-sm">{label}</span>
+            <span className="font-black text-[10px] uppercase tracking-widest">{label}</span>
         </button>
     );
 }

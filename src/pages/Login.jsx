@@ -77,7 +77,7 @@ const Login = () => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.6 }}
-        className="w-full max-w-[1200px] grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+        className="w-full lg:w-[70vw] max-w-[1600px] grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
       >
         {/* Left Column: Branding & Experience */}
         <section className="hidden lg:flex flex-col gap-8 pr-12">

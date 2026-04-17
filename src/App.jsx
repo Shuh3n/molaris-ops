@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Billing from './pages/Billing';
 import InvoicePreview from './pages/InvoicePreview';
 import Patients from './pages/Patients';
+import Appointments from './pages/Appointments';
 import Settings from './pages/Settings';
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
         {/* Dashboard y sus secciones usando tu DashboardRecepcionista como Layout */}
         <Route path="/dashboard/recepcionista" element={<DashboardRecepcionista />}>
           <Route index element={<Dashboard />} />
-          <Route path="citas" element={<Dashboard />} /> {/* Citas usa Dashboard por ahora */}
+          <Route path="citas" element={<Appointments />} />
           <Route path="facturacion" element={<Billing />} />
           <Route path="facturacion/invoice/:id" element={<InvoicePreview />} />
           <Route path="pacientes" element={<Patients />} />

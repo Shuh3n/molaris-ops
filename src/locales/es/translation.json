@@ -168,6 +168,57 @@
     "tip": {
       "title": "Consejo de Administración",
       "desc": "Pasa el mouse sobre el nombre de un paciente para ver su método de comunicación preferido."
+    },
+    "new_patient": "Nuevo Paciente",
+    "modal": {
+      "title_create": "Registrar Nuevo Paciente",
+      "title_edit": "Editar Perfil del Paciente",
+      "subtitle": "Completa la información necesaria para gestionar el historial del paciente.",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "phone": "Teléfono",
+      "document_id": "Documento de Identidad",
+      "birth_date": "Fecha de Nacimiento",
+      "save": "Guardar Paciente",
+      "cancel": "Cancelar",
+      "loading": "Procesando...",
+      "success_create": "Paciente registrado exitosamente",
+      "success_update": "Paciente actualizado exitosamente",
+      "success_delete": "Paciente eliminado del directorio",
+      "error": "Ocurrió un error al procesar la solicitud"
+    }
+  },
+  "appointments": {
+    "title": "Citas",
+    "subtitle": "Gestiona el calendario de citas de tu clínica. Programa nuevas visitas y mantén el flujo de pacientes organizado.",
+    "new_appointment": "Nueva Cita",
+    "filter": "Filtrar",
+    "table": {
+      "patient": "Paciente",
+      "date": "Fecha y Hora",
+      "dentist": "Dentista",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "programada": "Programada",
+      "completada": "Completada",
+      "cancelada": "Cancelada",
+      "noshow": "No se presentó"
+    },
+    "modal": {
+      "title_create": "Nueva Cita",
+      "title_edit": "Editar Cita",
+      "subtitle": "Completa los detalles para programar la cita.",
+      "patient_search": "Buscar Paciente",
+      "date": "Fecha",
+      "time": "Hora",
+      "dentist": "Dentista",
+      "reason": "Motivo",
+      "notes": "Notas",
+      "save": "Guardar Cita",
+      "cancel": "Cancelar",
+      "loading": "Procesando..."
     }
   },
   "settings": {

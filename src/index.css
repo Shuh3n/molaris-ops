@@ -11,6 +11,9 @@
 }
 
 @layer base {
+  html, body, #root {
+    @apply h-screen overflow-hidden;
+  }
   body {
     @apply bg-background font-body text-slate-800;
   }
@@ -24,6 +27,23 @@
     @apply cursor-not-allowed;
   }
 }
+
+.scroll-container {
+  overflow-y: auto;
+  height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.1) transparent;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.1);
+  border-radius: 20px;
+}
+
 
 
 .editorial-gradient {
