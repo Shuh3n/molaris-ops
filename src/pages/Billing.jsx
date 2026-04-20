@@ -1,296 +1,502 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useToast } from '../components/ToastContext';
+import PatientSearch from '../components/PatientSearch';
+import ConfirmModal from '../components/ConfirmModal';
+
+const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-bill`;
+
+const getAuthHeaders = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  return {
+    'Authorization': `Bearer ${session?.access_token}`,
+    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+    'Content-Type': 'application/json',
+  };
+};
+
+const EMPTY_FORM = {
+  paciente: '',
+  categoria: 'Consulta General',
+  descripcion: '',
+  costo: '',
+  fecha_servicio: new Date().toISOString().split('T')[0],
+  estado: 'pendiente',
+};
+
+const CATEGORIAS = [
+  'Consulta General',
+  'Endodoncia',
+  'Odontología Estética',
+  'Ortodoncia',
+  'Limpieza Dental',
+  'Extracción',
+  'Blanqueamiento',
+  'Urgencia',
+];
 
 const Billing = () => {
   const { t } = useTranslation();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { addToast } = useToast();
 
+  const [facturas, setFacturas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingFactura, setEditingFactura] = useState(null); // null = crear, obj = editar
+  const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, id: null });
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  // ── Fetch ──────────────────────────────────────────────────────────────────
+  const fetchFacturas = useCallback(async () => {
+    setLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(FUNCTION_URL, { headers });
+      if (!res.ok) throw new Error('Error al cargar facturas');
+      const data = await res.json();
+      setFacturas(data);
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [addToast]);
+
+  useEffect(() => { fetchFacturas(); }, [fetchFacturas]);
+
+  // ── Totales ────────────────────────────────────────────────────────────────
+  const totalOutstanding = facturas
+    .filter(f => f.estado === 'pendiente')
+    .reduce((acc, f) => acc + Number(f.costo), 0);
+
+  const totalRevenue = facturas
+    .filter(f => f.estado === 'pagado')
+    .reduce((acc, f) => acc + Number(f.costo), 0);
+
+  // ── Filtro ─────────────────────────────────────────────────────────────────
+  const filtradas = facturas.filter(f => {
+    if (filterStatus === 'all') return true;
+    return f.estado === filterStatus;
+  });
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  const handleOpenCreate = () => { setEditingFactura(null); setIsModalOpen(true); };
+  const handleOpenEdit = (factura) => { setEditingFactura(factura); setIsModalOpen(true); };
+  const handleDelete = (id) => setConfirmConfig({ isOpen: true, id });
+
+  const handleSave = async (formData) => {
+    try {
+      const headers = await getAuthHeaders();
+      const isEdit = !!editingFactura;
+      const url = isEdit ? `${FUNCTION_URL}?id=${editingFactura.id}` : FUNCTION_URL;
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, { method, headers, body: JSON.stringify(formData) });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al guardar');
+      }
+      addToast(isEdit ? 'Factura actualizada' : 'Factura creada', 'success');
+      setIsModalOpen(false);
+      await fetchFacturas();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${FUNCTION_URL}?id=${confirmConfig.id}`, { method: 'DELETE', headers });
+      if (!res.ok) throw new Error('Error al eliminar');
+      addToast('Factura eliminada', 'success');
+      await fetchFacturas();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      setConfirmConfig({ isOpen: false, id: null });
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-0">
-      {/* Dashboard Header Section */}
+      {/* Header */}
       <section className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
           <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-on-surface">{t('billing.title')}</h2>
           <p className="text-slate-500 font-medium opacity-70">{t('billing.subtitle')}</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white text-on-surface font-bold shadow-sm hover:bg-slate-50 transition-all border border-slate-100 cursor-pointer">
-            <span className="material-symbols-outlined text-[20px]">file_download</span> 
-            <span className="hidden sm:inline">{t('common.export')}</span>
-          </button>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex-[2] md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white font-black shadow-xl shadow-blue-200 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white font-black shadow-xl shadow-blue-200 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[20px]">add</span> {t('billing.new_invoice')}
+            <span className="material-symbols-outlined text-[20px]">add</span>
+            {t('billing.new_invoice')}
           </button>
         </div>
       </section>
 
-      {/* Bento Stats Grid */}
+      {/* Stats */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <div className="sm:col-span-2 p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-700 to-blue-500 text-white shadow-2xl shadow-blue-100 flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
             <p className="text-blue-100 font-bold text-xs uppercase tracking-widest mb-2 opacity-80">{t('billing.stats.outstanding')}</p>
-            <h3 className="text-4xl lg:text-5xl font-black tracking-tighter">$24,840.00</h3>
+            <h3 className="text-4xl lg:text-5xl font-black tracking-tighter">
+              ${totalOutstanding.toFixed(2)}
+            </h3>
           </div>
-          <div className="relative z-10 flex flex-wrap items-center gap-4 mt-8">
-            <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl text-[10px] font-black uppercase">
-              <span className="material-symbols-outlined text-[14px]">trending_up</span> +12% vs last month
-            </div>
-            <p className="text-blue-100 text-xs font-medium">{t('billing.stats.pending_desc')}</p>
+          <div className="relative z-10 mt-8">
+            <p className="text-blue-100 text-xs font-medium">
+              {facturas.filter(f => f.estado === 'pendiente').length} facturas pendientes
+            </p>
           </div>
-          <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="p-8 rounded-[2.5rem] bg-white shadow-sm border border-slate-50 flex flex-col justify-between">
           <div>
             <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 mb-6">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
             </div>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">{t('billing.stats.revenue_mtd')}</p>
-            <h3 className="text-2xl font-black text-slate-900">$12,450</h3>
-          </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mt-6">
-            <motion.div initial={{ width: 0 }} animate={{ width: '75%' }} transition={{ duration: 1 }} className="h-full bg-green-500 rounded-full"></motion.div>
+            <h3 className="text-2xl font-black text-slate-900">${totalRevenue.toFixed(2)}</h3>
           </div>
         </div>
 
         <div className="p-8 rounded-[2.5rem] bg-white shadow-sm border border-slate-50 flex flex-col justify-between">
           <div>
             <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 mb-6">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
             </div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">{t('billing.stats.overdue')}</p>
-            <h3 className="text-2xl font-black text-slate-900">$3,120</h3>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Facturas</p>
+            <h3 className="text-2xl font-black text-slate-900">{facturas.length}</h3>
           </div>
-          <p className="text-[10px] text-amber-600 font-black uppercase tracking-widest mt-6">{t('billing.stats.action_required')}</p>
         </div>
       </section>
 
-      {/* Invoice Table Container */}
+      {/* Tabla */}
       <section className="bg-white rounded-[2.5rem] shadow-sm overflow-hidden border border-slate-100">
         <div className="p-8 border-b border-slate-50 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
             <h3 className="font-black text-xl px-2 whitespace-nowrap">{t('billing.table.recent')}</h3>
             <div className="flex gap-2">
-              <StatusChip label="Todos" active />
-              <StatusChip label={t('billing.status.paid')} />
-              <StatusChip label={t('billing.status.pending')} />
+              {[['all', 'Todos'], ['pagado', t('billing.status.paid')], ['pendiente', t('billing.status.pending')]].map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setFilterStatus(val)}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${filterStatus === val ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-slate-50 text-slate-400 hover:text-slate-600'}`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
-          <button className="text-primary font-black text-sm hover:underline cursor-pointer whitespace-nowrap text-left lg:text-right">{t('billing.table.view_all')}</button>
         </div>
+
         <div className="overflow-x-auto no-scrollbar">
-          <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-widest text-slate-400 font-black bg-slate-50/50">
-                <th className="px-8 py-5">{t('billing.table.patient')}</th>
-                <th className="px-6 py-5">{t('billing.table.description')}</th>
-                <th className="px-6 py-5">{t('billing.table.cost')}</th>
-                <th className="px-6 py-5">{t('billing.table.date')}</th>
-                <th className="px-6 py-5 text-center">{t('billing.table.status')}</th>
-                <th className="px-8 py-5 text-right">{t('billing.table.actions')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              <InvoiceRow 
-                name="Sarah Jenkins" 
-                id="DT-9482" 
-                desc="Endodoncia y Corona de Porcelana" 
-                cost="$1,450.00" 
-                date="24 Oct, 2026" 
-                status="Pagado" 
-                statusColor="bg-green-50 text-green-700" 
-                dotColor="bg-green-500"
-                img="https://lh3.googleusercontent.com/aida-public/AB6AXuBOL1w-pP5ODDcSnbrGKC7KyYjp7yK7QfldaqWCkNvOceAUmatA5hQJDdpDLaGdl3yBP2tbU7h9CcH6jABVKOHklZ1lCgvcCc_O1h3KFfmg1ZmXURGTSA6quIc-wAl-18Njj_v4ZTj79F_NXgAcDFSKkH0peH_pPJtLcMOc4G6HVC-UGIUf_165xJxVjSiki0AYS8ai1U4y4zZ82tIMg-OyKAdL7svpClqu4JuaY4dj1xuYLLG5L3FdPXf0stXjoF_tS1mRwfzh"
-              />
-              <InvoiceRow 
-                name="Michael Ross" 
-                id="DT-9510" 
-                desc="Limpieza Completa y Blanqueamiento" 
-                cost="$320.00" 
-                date="22 Oct, 2026" 
-                status="Pendiente" 
-                statusColor="bg-amber-50 text-amber-700" 
-                dotColor="bg-amber-500"
-                img="https://lh3.googleusercontent.com/aida-public/AB6AXuCSHqxi-wIFvZlkpix8sdXCMfCWvy0jaPvTUVWhmRoVSnzL7-GR27MIZMAZltKWtwC7fF-zJL7WbFeu6r5zpSvp6qCIjVqQpao8Jq87r_XpaDKMtwjM8GDNVqvrLs_CR2BQ4VItbVDDxRl6jpKgsG6WD90Jtv29DwqWxnB1zkEEq4nVZ8pjRASlvR9vn29QIJLmlWteT0rDxccOo2TPb2Z4EqAwJTRVP84TcM811-u_-nKDwnTebrHBcei_PRwUNyaUQVlgdc73"
-              />
-              <InvoiceRow 
-                name="Jessica Thompson" 
-                id="DT-8821" 
-                desc="Extracción de Muela del Juicio" 
-                cost="$550.00" 
-                date="20 Oct, 2026" 
-                status="Pagado" 
-                statusColor="bg-green-50 text-green-700" 
-                dotColor="bg-green-500"
-                img="https://lh3.googleusercontent.com/aida-public/AB6AXuDUUDiKAF8jbAr82UpYxMJf15GFbnOudsxdV8QgHSuvJzCVAOjjaNAKmZcCMoid9onha9uYij23VLvLMacwXigAJWLDIREcP0mlRd6U7KkNWfhtrIL2HiGFy-0Iiii3Y9_U3PKiMPBI03SaY4pJ_CXf7znMH6w-ffqw_O0PgEGB8LkGNqBwPDLRxdJq-pWpKFIxt9zgn_ZET0cXFeqWhU6SQwW_X8YxylpG1wMytjZPbnMpUKxt11kzR34NCbmn3tWQOY4GPXdc"
-              />
-            </tbody>
-          </table>
-        </div>
-        <div className="p-6 bg-slate-50/30 text-center border-t border-slate-50">
-          <button className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors cursor-pointer">Cargar más registros</button>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+          ) : filtradas.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-4">
+              <span className="material-symbols-outlined text-6xl opacity-20">receipt_long</span>
+              <p className="font-bold italic text-slate-400 text-sm">No hay facturas para mostrar.</p>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-widest text-slate-400 font-black bg-slate-50/50">
+                  <th className="px-8 py-5">{t('billing.table.patient')}</th>
+                  <th className="px-6 py-5">{t('billing.table.description')}</th>
+                  <th className="px-6 py-5">{t('billing.table.cost')}</th>
+                  <th className="px-6 py-5">{t('billing.table.date')}</th>
+                  <th className="px-6 py-5 text-center">{t('billing.table.status')}</th>
+                  <th className="px-8 py-5 text-right">{t('billing.table.actions')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {filtradas.map((factura) => (
+                  <InvoiceRow
+                    key={factura.id}
+                    factura={factura}
+                    onEdit={() => handleOpenEdit(factura)}
+                    onDelete={() => handleDelete(factura.id)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </section>
 
-      {/* Modal / Slide-over */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <>
-            <motion.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                exit={{ opacity: 0 }}
-                onClick={() => setIsModalOpen(false)}
-                className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] cursor-pointer" 
-            />
-            <motion.div 
-                initial={{ x: '100%' }} 
-                animate={{ x: 0 }} 
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed right-0 top-0 w-full max-w-xl bg-white h-screen shadow-2xl z-[70] flex flex-col"
-            >
-                <header className="p-8 lg:p-10 border-b border-slate-100 flex items-center justify-between shrink-0">
-                    <div>
-                        <h3 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">{t('billing.modal.title')}</h3>
-                        <p className="text-sm font-medium text-slate-500">{t('billing.modal.subtitle')}</p>
-                    </div>
-                    <button 
-                        onClick={() => setIsModalOpen(false)}
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center hover:bg-slate-50 text-slate-400 transition-colors cursor-pointer"
-                    >
-                        <span className="material-symbols-outlined">close</span>
-                    </button>
-                </header>
-                <form className="flex-1 overflow-y-auto p-8 lg:p-10 space-y-10 no-scrollbar">
-                    {/* Patient Search */}
-                    <div className="space-y-4">
-                        <label className="block text-[10px] uppercase tracking-widest font-black text-primary ml-1">{t('billing.modal.selection')}</label>
-                        <div className="relative group">
-                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">person_search</span>
-                            <input 
-                                className="w-full border-none bg-slate-50 rounded-2xl py-4 pl-12 pr-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium" 
-                                placeholder={t('billing.modal.search_placeholder')} 
-                                type="text"
-                            />
-                        </div>
-                    </div>
-                    {/* Service Details */}
-                    <div className="space-y-4">
-                        <label className="block text-[10px] uppercase tracking-widest font-black text-primary ml-1">{t('billing.modal.service_details')}</label>
-                        <div className="bg-slate-50/50 p-6 rounded-[2rem] space-y-6 border border-slate-50">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('billing.modal.category')}</label>
-                                <select className="w-full border-none bg-white rounded-2xl py-4 px-4 focus:ring-2 focus:ring-primary/20 outline-none font-medium shadow-sm">
-                                    <option>Consulta General</option>
-                                    <option>Endodoncia</option>
-                                    <option>Odontología Estética</option>
-                                    <option>Ortodoncia</option>
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('billing.modal.treatment_desc')}</label>
-                                <textarea className="w-full border-none bg-white rounded-2xl py-4 px-4 focus:ring-2 focus:ring-primary/20 outline-none resize-none font-medium shadow-sm" placeholder="Ingresa notas del tratamiento..." rows="3"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    {/* Financials */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="block text-[10px] uppercase tracking-widest font-black text-primary ml-1">{t('billing.modal.total_cost')}</label>
-                            <input className="w-full border-none bg-slate-50 rounded-2xl py-4 px-6 font-black text-2xl focus:ring-2 focus:ring-primary/20 outline-none" placeholder="0.00" type="number"/>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-[10px] uppercase tracking-widest font-black text-primary ml-1">{t('billing.modal.service_date')}</label>
-                            <input className="w-full border-none bg-slate-50 rounded-2xl py-4 px-6 text-slate-900 focus:ring-2 focus:ring-primary/20 outline-none font-bold" type="date"/>
-                        </div>
-                    </div>
-                    {/* Payment Status */}
-                    <div className="space-y-4">
-                        <label className="block text-[10px] uppercase tracking-widest font-black text-primary ml-1">{t('billing.modal.initial_status')}</label>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <label className="flex-1 cursor-pointer">
-                                <input checked type="radio" name="status" className="hidden peer" />
-                                <div className="p-6 border-2 border-transparent bg-slate-50 rounded-2xl peer-checked:border-primary peer-checked:bg-primary/5 text-center transition-all">
-                                    <span className="material-symbols-outlined block mb-2 text-primary">pending</span>
-                                    <span className="text-sm font-black uppercase tracking-widest">{t('billing.status.pending')}</span>
-                                </div>
-                            </label>
-                            <label className="flex-1 cursor-pointer">
-                                <input type="radio" name="status" className="hidden peer" />
-                                <div className="p-6 border-2 border-transparent bg-slate-50 rounded-2xl peer-checked:border-green-500 peer-checked:bg-green-50 text-center transition-all">
-                                    <span className="material-symbols-outlined block mb-2 text-green-600">payments</span>
-                                    <span className="text-sm font-black uppercase tracking-widest">{t('billing.status.paid')}</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </form>
-                <footer className="p-8 lg:p-10 border-t border-slate-100 flex flex-col sm:flex-row gap-4 shrink-0 bg-slate-50/50">
-                    <button 
-                        onClick={() => setIsModalOpen(false)}
-                        className="flex-1 py-4 px-6 rounded-2xl font-bold text-slate-400 hover:text-slate-600 hover:bg-white transition-all cursor-pointer"
-                    >
-                        {t('billing.modal.discard')}
-                    </button>
-                    <button className="flex-[2] py-4 px-6 rounded-2xl font-black bg-primary text-white shadow-xl shadow-blue-200 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer">
-                        {t('billing.modal.create')}
-                    </button>
-                </footer>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Modal crear/editar */}
+      <InvoiceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        factura={editingFactura}
+      />
+
+      {/* Confirm delete */}
+      <ConfirmModal
+        isOpen={confirmConfig.isOpen}
+        onClose={() => setConfirmConfig({ isOpen: false, id: null })}
+        onConfirm={handleConfirmDelete}
+        title="¿Eliminar factura?"
+        message="Esta acción eliminará la factura permanentemente."
+        type="danger"
+      />
     </div>
   );
 };
 
-const StatusChip = ({ label, active }) => (
-  <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all whitespace-nowrap ${active ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-slate-50 text-slate-400 hover:text-slate-600'}`}>
-    {label}
-  </span>
-);
+// ─── Fila de tabla ────────────────────────────────────────────────────────────
+const InvoiceRow = ({ factura, onEdit, onDelete }) => {
+  const isPaid = factura.estado === 'pagado';
+  const statusColor = isPaid ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700';
+  const dotColor = isPaid ? 'bg-green-500' : 'bg-amber-500';
+  const nombre = factura.pacientes
+    ? `${factura.pacientes.nombre} ${factura.pacientes.apellido}`
+    : 'Paciente';
 
-const InvoiceRow = ({ name, id, desc, cost, date, status, statusColor, dotColor, img }) => (
-  <tr className="group hover:bg-blue-50/30 transition-colors">
-    <td className="px-8 py-6 whitespace-nowrap">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-slate-100 overflow-hidden ring-1 ring-slate-100">
-          <img className="w-full h-full object-cover" src={img} alt={name} />
+  return (
+    <tr className="group hover:bg-blue-50/30 transition-colors">
+      <td className="px-8 py-6 whitespace-nowrap">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+            {factura.pacientes?.nombre?.[0]}{factura.pacientes?.apellido?.[0]}
+          </div>
+          <div>
+            <p className="font-bold text-slate-900">{nombre}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">#{factura.id}</p>
+          </div>
         </div>
-        <div>
-          <p className="font-bold text-slate-900">{name}</p>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID: #{id}</p>
+      </td>
+      <td className="px-6 py-6">
+        <p className="text-slate-600 font-medium text-sm">{factura.descripcion || factura.categoria || '—'}</p>
+        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{factura.categoria}</p>
+      </td>
+      <td className="px-6 py-6 whitespace-nowrap">
+        <p className="font-black text-slate-900">${Number(factura.costo).toFixed(2)}</p>
+      </td>
+      <td className="px-6 py-6 whitespace-nowrap text-slate-400 font-bold text-xs">
+        {factura.fecha_servicio
+          ? new Date(factura.fecha_servicio + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
+          : '—'}
+      </td>
+      <td className="px-6 py-6 whitespace-nowrap">
+        <div className="flex justify-center">
+          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${statusColor}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+            {isPaid ? 'Pagado' : 'Pendiente'}
+          </span>
         </div>
-      </div>
-    </td>
-    <td className="px-6 py-6 whitespace-nowrap">
-      <p className="text-slate-600 font-medium text-sm">{desc}</p>
-    </td>
-    <td className="px-6 py-6 whitespace-nowrap">
-      <p className="font-black text-slate-900">{cost}</p>
-    </td>
-    <td className="px-6 py-6 whitespace-nowrap text-slate-400 font-bold text-xs">{date}</td>
-    <td className="px-6 py-6 whitespace-nowrap">
-      <div className="flex justify-center">
-        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${statusColor}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span> {status}
-        </span>
-      </div>
-    </td>
-    <td className="px-8 py-6 whitespace-nowrap text-right">
-      <div className="flex justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-        <Link to={`/dashboard/recepcionista/facturacion/invoice/${id}`} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100" title="Ver Detalles"><span className="material-symbols-outlined text-[20px]">visibility</span></Link>
-        <button className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100 cursor-pointer" title="Imprimir"><span className="material-symbols-outlined text-[20px]">print</span></button>
-        <button className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100 cursor-pointer" title="Opciones"><span className="material-symbols-outlined text-[20px]">more_vert</span></button>
-      </div>
-    </td>
-  </tr>
-);
+      </td>
+      <td className="px-8 py-6 whitespace-nowrap text-right">
+        <div className="flex justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+          <Link
+            to={`/dashboard/recepcionista/facturacion/invoice/${factura.id}`}
+            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100"
+            title="Ver"
+          >
+            <span className="material-symbols-outlined text-[20px]">visibility</span>
+          </Link>
+          <button
+            onClick={onEdit}
+            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100 cursor-pointer"
+            title="Editar"
+          >
+            <span className="material-symbols-outlined text-[20px]">edit</span>
+          </button>
+          <button
+            onClick={onDelete}
+            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-red-500 transition-all hover:bg-red-50 rounded-xl shadow-sm border border-transparent hover:border-red-100 cursor-pointer"
+            title="Eliminar"
+          >
+            <span className="material-symbols-outlined text-[20px]">delete</span>
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+// ─── Modal Crear / Editar ─────────────────────────────────────────────────────
+const InvoiceModal = ({ isOpen, onClose, onSave, factura }) => {
+  const { t } = useTranslation();
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Cuando se abre en modo edición, pre-llenamos el form
+  useEffect(() => {
+    if (factura) {
+      setFormData({
+        paciente: factura.paciente,
+        categoria: factura.categoria || 'Consulta General',
+        descripcion: factura.descripcion || '',
+        costo: factura.costo ?? '',
+        fecha_servicio: factura.fecha_servicio || new Date().toISOString().split('T')[0],
+        estado: factura.estado || 'pendiente',
+      });
+      setSelectedPatient(factura.pacientes || null);
+    } else {
+      setFormData(EMPTY_FORM);
+      setSelectedPatient(null);
+    }
+  }, [factura, isOpen]);
+
+  const handleSubmit = async () => {
+    if (!formData.paciente) return;
+    setSubmitting(true);
+    try {
+      await onSave(formData);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const inputClass = "w-full px-5 py-3.5 bg-white border-2 border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl text-sm font-bold transition-all placeholder:text-slate-300 outline-none text-slate-900";
+  const labelClass = "text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-1 block";
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
+          >
+            {/* Header */}
+            <div className="px-10 pt-10 pb-6 shrink-0 flex justify-between items-center border-b border-slate-50">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                  {factura ? 'Editar Factura' : t('billing.modal.title')}
+                </h3>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                  {factura ? `#${factura.id}` : t('billing.modal.subtitle')}
+                </p>
+              </div>
+              <button onClick={onClose} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-10 py-8 space-y-6 no-scrollbar">
+              {/* Paciente */}
+              <div>
+                <label className={labelClass}>{t('billing.modal.selection')}</label>
+                <PatientSearch
+                  selectedPatient={selectedPatient}
+                  onSelect={(p) => {
+                    setSelectedPatient(p);
+                    setFormData(prev => ({ ...prev, paciente: p.id }));
+                  }}
+                />
+              </div>
+
+              {/* Categoría */}
+              <div>
+                <label className={labelClass}>{t('billing.modal.category')}</label>
+                <select
+                  value={formData.categoria}
+                  onChange={e => setFormData(prev => ({ ...prev, categoria: e.target.value }))}
+                  className={inputClass}
+                >
+                  {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              {/* Descripción */}
+              <div>
+                <label className={labelClass}>{t('billing.modal.treatment_desc')}</label>
+                <textarea
+                  value={formData.descripcion}
+                  onChange={e => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
+                  rows={3}
+                  placeholder="Detalle del tratamiento realizado..."
+                  className={`${inputClass} resize-none`}
+                />
+              </div>
+
+              {/* Costo y Fecha */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>{t('billing.modal.total_cost')}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.costo}
+                    onChange={e => setFormData(prev => ({ ...prev, costo: e.target.value }))}
+                    placeholder="0.00"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>{t('billing.modal.service_date')}</label>
+                  <input
+                    type="date"
+                    value={formData.fecha_servicio}
+                    onChange={e => setFormData(prev => ({ ...prev, fecha_servicio: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Estado */}
+              <div>
+                <label className={labelClass}>{t('billing.modal.initial_status')}</label>
+                <div className="flex gap-4">
+                  {[['pendiente', 'Pendiente', 'pending', 'primary'], ['pagado', 'Pagado', 'payments', 'green-500']].map(([val, label, icon]) => (
+                    <label key={val} className="flex-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="estado"
+                        value={val}
+                        checked={formData.estado === val}
+                        onChange={() => setFormData(prev => ({ ...prev, estado: val }))}
+                        className="hidden"
+                      />
+                      <div className={`p-5 border-2 rounded-2xl text-center transition-all ${formData.estado === val ? (val === 'pagado' ? 'border-green-500 bg-green-50' : 'border-primary bg-primary/5') : 'border-slate-100 bg-slate-50'}`}>
+                        <span className={`material-symbols-outlined block mb-1 ${formData.estado === val ? (val === 'pagado' ? 'text-green-600' : 'text-primary') : 'text-slate-400'}`}>{icon}</span>
+                        <span className="text-xs font-black uppercase tracking-widest">{label}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-10 py-8 shrink-0 flex gap-4 border-t border-slate-50">
+              <button onClick={onClose} className="flex-1 py-4 text-slate-400 hover:text-slate-600 font-black rounded-2xl border-2 border-slate-100 hover:border-slate-200 transition-all text-xs uppercase tracking-widest">
+                {t('billing.modal.discard')}
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || !formData.paciente}
+                className="flex-[2] bg-primary text-white py-4 rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+              >
+                {submitting && <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full" />}
+                {factura ? 'Guardar Cambios' : t('billing.modal.create')}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 export default Billing;
