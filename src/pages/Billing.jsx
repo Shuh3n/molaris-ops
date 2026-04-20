@@ -20,9 +20,10 @@ const getAuthHeaders = async () => {
 
 const EMPTY_FORM = {
   paciente: '',
+  cita_id: null,
   categoria: 'Consulta General',
   descripcion: '',
-  costo: '',
+  costo: 0,
   fecha_servicio: new Date().toISOString().split('T')[0],
   estado: 'pendiente',
 };
@@ -45,11 +46,10 @@ const Billing = () => {
   const [facturas, setFacturas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingFactura, setEditingFactura] = useState(null); // null = crear, obj = editar
+  const [editingFactura, setEditingFactura] = useState(null); 
   const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, id: null });
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchFacturas = useCallback(async () => {
     setLoading(true);
     try {
@@ -67,7 +67,6 @@ const Billing = () => {
 
   useEffect(() => { fetchFacturas(); }, [fetchFacturas]);
 
-  // ── Totales ────────────────────────────────────────────────────────────────
   const totalOutstanding = facturas
     .filter(f => f.estado === 'pendiente')
     .reduce((acc, f) => acc + Number(f.costo), 0);
@@ -76,13 +75,11 @@ const Billing = () => {
     .filter(f => f.estado === 'pagado')
     .reduce((acc, f) => acc + Number(f.costo), 0);
 
-  // ── Filtro ─────────────────────────────────────────────────────────────────
   const filtradas = facturas.filter(f => {
     if (filterStatus === 'all') return true;
     return f.estado === filterStatus;
   });
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleOpenCreate = () => { setEditingFactura(null); setIsModalOpen(true); };
   const handleOpenEdit = (factura) => { setEditingFactura(factura); setIsModalOpen(true); };
   const handleDelete = (id) => setConfirmConfig({ isOpen: true, id });
@@ -121,7 +118,6 @@ const Billing = () => {
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-0">
       {/* Header */}
@@ -147,7 +143,7 @@ const Billing = () => {
           <div className="relative z-10">
             <p className="text-blue-100 font-bold text-xs uppercase tracking-widest mb-2 opacity-80">{t('billing.stats.outstanding')}</p>
             <h3 className="text-4xl lg:text-5xl font-black tracking-tighter">
-              ${totalOutstanding.toFixed(2)}
+              ${new Intl.NumberFormat('es-AR').format(totalOutstanding)}
             </h3>
           </div>
           <div className="relative z-10 mt-8">
@@ -161,17 +157,17 @@ const Billing = () => {
         <div className="p-8 rounded-[2.5rem] bg-white shadow-sm border border-slate-50 flex flex-col justify-between">
           <div>
             <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 mb-6">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>     
             </div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">{t('billing.stats.revenue_mtd')}</p>
-            <h3 className="text-2xl font-black text-slate-900">${totalRevenue.toFixed(2)}</h3>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">{t('billing.stats.revenue_mtd')}</p> 
+            <h3 className="text-2xl font-black text-slate-900">${new Intl.NumberFormat('es-AR').format(totalRevenue)}</h3>
           </div>
         </div>
 
         <div className="p-8 rounded-[2.5rem] bg-white shadow-sm border border-slate-50 flex flex-col justify-between">
           <div>
             <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 mb-6">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>     
             </div>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Facturas</p>
             <h3 className="text-2xl font-black text-slate-900">{facturas.length}</h3>
@@ -265,16 +261,18 @@ const InvoiceRow = ({ factura, onEdit, onDelete }) => {
     ? `${factura.pacientes.nombre} ${factura.pacientes.apellido}`
     : 'Paciente';
 
+  const displayId = String(factura.id).includes('-') ? factura.id.slice(0, 8) : factura.id;
+
   return (
     <tr className="group hover:bg-blue-50/30 transition-colors">
       <td className="px-8 py-6 whitespace-nowrap">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase"> 
             {factura.pacientes?.nombre?.[0]}{factura.pacientes?.apellido?.[0]}
           </div>
           <div>
             <p className="font-bold text-slate-900">{nombre}</p>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">#{factura.id}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">#{displayId}</p>
           </div>
         </div>
       </td>
@@ -283,9 +281,9 @@ const InvoiceRow = ({ factura, onEdit, onDelete }) => {
         <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{factura.categoria}</p>
       </td>
       <td className="px-6 py-6 whitespace-nowrap">
-        <p className="font-black text-slate-900">${Number(factura.costo).toFixed(2)}</p>
+        <p className="font-black text-slate-900">${new Intl.NumberFormat('es-AR').format(factura.costo)}</p>
       </td>
-      <td className="px-6 py-6 whitespace-nowrap text-slate-400 font-bold text-xs">
+      <td className="px-6 py-6 whitespace-nowrap text-slate-400 font-bold text-xs uppercase">
         {factura.fecha_servicio
           ? new Date(factura.fecha_servicio + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
           : '—'}
@@ -332,25 +330,88 @@ const InvoiceModal = ({ isOpen, onClose, onSave, factura }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [citas, setCitas] = useState([]);
+  const [loadingCitas, setLoadingCitas] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [displayCosto, setDisplayCosto] = useState('0');
 
-  // Cuando se abre en modo edición, pre-llenamos el form
+  const formatMoney = (value) => {
+    if (value === undefined || value === null || value === '') return '';
+    return new Intl.NumberFormat('es-AR').format(value);
+  };
+
+  const parseMoney = (value) => {
+    return parseFloat(String(value).replace(/\./g, '').replace(/,/g, '.')) || 0;
+  };
+
+  // Cuando cambia el paciente, traemos sus citas
+  useEffect(() => {
+    const fetchCitasPaciente = async () => {
+      if (!selectedPatient) {
+        setCitas([]);
+        return;
+      }
+      setLoadingCitas(true);
+      try {
+        const { data, error } = await supabase
+          .from('citas')
+          .select(`
+            id, 
+            fecha_hora, 
+            motivo_id, 
+            motivos_consulta:motivo_id (nombre, costo_base)
+          `)
+          .eq('paciente_id', selectedPatient.id)
+          .order('fecha_hora', { ascending: false })
+          .limit(10);
+
+        if (!error) setCitas(data || []);
+      } catch (err) {
+        console.error("Error fetching citas:", err);
+      } finally {
+        setLoadingCitas(false);
+      }
+    };
+
+    fetchCitasPaciente();
+  }, [selectedPatient]);
+
+  // Pre-llenado en edición
   useEffect(() => {
     if (factura) {
+      const costoVal = factura.costo ?? 0;
       setFormData({
         paciente: factura.paciente,
+        cita_id: factura.cita_id,
         categoria: factura.categoria || 'Consulta General',
         descripcion: factura.descripcion || '',
-        costo: factura.costo ?? '',
+        costo: costoVal,
         fecha_servicio: factura.fecha_servicio || new Date().toISOString().split('T')[0],
         estado: factura.estado || 'pendiente',
       });
+      setDisplayCosto(formatMoney(costoVal));
       setSelectedPatient(factura.pacientes || null);
     } else {
       setFormData(EMPTY_FORM);
+      setDisplayCosto('0');
       setSelectedPatient(null);
     }
   }, [factura, isOpen]);
+
+  const handleCitaSelect = (citaId) => {
+    const cita = citas.find(c => c.id === citaId);
+    if (cita) {
+      const costo = cita.motivos_consulta?.costo_base || 0;
+      setFormData(prev => ({
+        ...prev,
+        cita_id: citaId,
+        categoria: cita.motivos_consulta?.nombre || prev.categoria,
+        costo: costo,
+        fecha_servicio: cita.fecha_hora.split('T')[0],
+      }));
+      setDisplayCosto(formatMoney(costo));
+    }
+  };
 
   const handleSubmit = async () => {
     if (!formData.paciente) return;
@@ -383,7 +444,7 @@ const InvoiceModal = ({ isOpen, onClose, onSave, factura }) => {
                   {factura ? 'Editar Factura' : t('billing.modal.title')}
                 </h3>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                  {factura ? `#${factura.id}` : t('billing.modal.subtitle')}
+                  {factura ? `#${String(factura.id).includes('-') ? factura.id.slice(0,8) : factura.id}` : t('billing.modal.subtitle')}
                 </p>
               </div>
               <button onClick={onClose} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
@@ -404,6 +465,31 @@ const InvoiceModal = ({ isOpen, onClose, onSave, factura }) => {
                   }}
                 />
               </div>
+
+              {/* Selección de Cita */}
+              {selectedPatient && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                  <label className={labelClass}>Vincular a Cita (Opcional)</label>
+                  {loadingCitas ? (
+                    <div className="py-2 flex justify-center"><motion.div animate={{rotate:360}} transition={{repeat:Infinity, duration:1, ease:'linear'}} className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full" /></div>
+                  ) : citas.length > 0 ? (
+                    <select
+                      value={formData.cita_id || ''}
+                      onChange={e => handleCitaSelect(e.target.value)}
+                      className={inputClass}
+                    >
+                      <option value="">— Elegir una cita reciente —</option>
+                      {citas.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {new Date(c.fecha_hora).toLocaleDateString()} - {c.motivos_consulta?.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-[10px] font-bold text-slate-400 bg-slate-50 p-3 rounded-xl">El paciente no tiene citas registradas.</p>
+                  )}
+                </motion.div>
+              )}
 
               {/* Categoría */}
               <div>
@@ -433,15 +519,28 @@ const InvoiceModal = ({ isOpen, onClose, onSave, factura }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>{t('billing.modal.total_cost')}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.costo}
-                    onChange={e => setFormData(prev => ({ ...prev, costo: e.target.value }))}
-                    placeholder="0.00"
-                    className={inputClass}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <input
+                      type="text"
+                      value={displayCosto}
+                      onFocus={(e) => {
+                        if (parseMoney(e.target.value) === 0) setDisplayCosto('');
+                      }}
+                      onBlur={(e) => {
+                        const val = parseMoney(e.target.value);
+                        setFormData({ ...formData, costo: val });
+                        setDisplayCosto(formatMoney(val));
+                      }}
+                      onChange={(e) => {
+                        const rawValue = e.target.value.replace(/[^\d]/g, '');
+                        const numericValue = parseInt(rawValue) || 0;
+                        setDisplayCosto(formatMoney(numericValue));
+                      }}
+                      placeholder="0"
+                      className={`${inputClass} pl-10`}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className={labelClass}>{t('billing.modal.service_date')}</label>

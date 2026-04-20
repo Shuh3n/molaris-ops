@@ -182,7 +182,7 @@ const InvoicePreview = () => {
                     </div>
                     <div className="col-span-2 text-right text-slate-500 font-medium">1</div>
                     <div className="col-span-2 text-right font-bold text-on-surface">
-                      ${Number(factura.costo).toFixed(2)}
+                      ${new Intl.NumberFormat('es-AR').format(factura.costo)}
                     </div>
                   </div>
                 </div>
@@ -193,17 +193,17 @@ const InvoicePreview = () => {
                 <div className="w-full max-w-xs space-y-4">
                   <div className="flex justify-between items-center px-6">
                     <span className="text-slate-500 font-medium">{t('invoice.summary.subtotal')}</span>
-                    <span className="font-semibold">${Number(factura.costo).toFixed(2)}</span>
+                    <span className="font-semibold">${new Intl.NumberFormat('es-AR').format(factura.costo)}</span>
                   </div>
                   <div className="flex justify-between items-center px-6">
                     <span className="text-slate-500 font-medium">{t('invoice.summary.tax')}</span>
-                    <span className="font-semibold">$0.00</span>
+                    <span className="font-semibold">$0</span>
                   </div>
                   <div className="h-px bg-slate-100 mx-6" />
                   <div className="flex justify-between items-center px-6 py-4 bg-primary/5 rounded-2xl">
                     <span className="text-primary font-black uppercase tracking-widest text-xs">{t('invoice.summary.total')}</span>
                     <span className="text-2xl font-black font-headline text-primary">
-                      ${Number(factura.costo).toFixed(2)}
+                      ${new Intl.NumberFormat('es-AR').format(factura.costo)}
                     </span>
                   </div>
                 </div>

@@ -38,7 +38,7 @@ serve(async (req) => {
     const method = req.method
     const id = url.searchParams.get('id')
 
-    // GET — Listar facturas con datos del paciente
+    // GET — Listar facturas con datos del paciente y cita
     if (method === 'GET') {
       if (id) {
         // Una sola factura
@@ -46,7 +46,8 @@ serve(async (req) => {
           .from('facturas')
           .select(`
             *,
-            pacientes (id, nombre, apellido, documento_id, telefono, email, direccion)
+            pacientes (id, nombre, apellido, documento_id, telefono, email, direccion),
+            cita:cita_id (id, fecha_hora, motivo_id, motivos_consulta (nombre))
           `)
           .eq('id', id)
           .single()
@@ -83,6 +84,7 @@ serve(async (req) => {
         .from('facturas')
         .insert([{
           paciente: body.paciente,
+          cita_id: body.cita_id,
           categoria: body.categoria,
           descripcion: body.descripcion,
           costo: body.costo ?? 0,
@@ -111,6 +113,7 @@ serve(async (req) => {
         .from('facturas')
         .update({
           paciente: body.paciente,
+          cita_id: body.cita_id,
           categoria: body.categoria,
           descripcion: body.descripcion,
           costo: body.costo,

@@ -27,17 +27,14 @@ const PatientSearch = ({ onSelect, selectedPatient }) => {
 
   useEffect(() => {
     const searchPatients = async () => {
-      if (searchTerm.length < 2 || (selectedPatient && searchTerm === `${selectedPatient.nombre} ${selectedPatient.apellido}`)) {
-        setResults([]);
-        return;
-      }
-
+      // Si el término es corto, mostramos resultados iniciales
+      const isInitialSearch = searchTerm.length < 1;
+      
       setLoading(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        // 1. Obtener mi clinica_id para buscar solo en mi clínica
         const { data: profile } = await supabase
           .from('perfiles')
           .select('clinica_id')
@@ -45,17 +42,19 @@ const PatientSearch = ({ onSelect, selectedPatient }) => {
           .single();
 
         if (profile?.clinica_id) {
-          const { data, error } = await supabase
+          let query = supabase
             .from('pacientes')
             .select('*')
             .eq('clinica_id', profile.clinica_id)
-            .or(`nombre.ilike.%${searchTerm}%,apellido.ilike.%${searchTerm}%`)
             .eq('activo', true)
             .limit(5);
 
-          if (!error) {
-            setResults(data);
+          if (!isInitialSearch && !(selectedPatient && searchTerm === `${selectedPatient.nombre} ${selectedPatient.apellido}`)) {
+            query = query.or(`nombre.ilike.%${searchTerm}%,apellido.ilike.%${searchTerm}%`);
           }
+
+          const { data, error } = await query;
+          if (!error) setResults(data || []);
         }
       } catch (err) {
         console.error("Error searching patients:", err);
