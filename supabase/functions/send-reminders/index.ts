@@ -41,6 +41,9 @@ Deno.serve(async (req: Request) => {
           apellido,
           telegram_chat_id,
           telefono
+        ),
+        motivos_consulta:motivo_id (
+          nombre
         )
       `)
       .eq('estado', 'programada')
@@ -90,13 +93,17 @@ Deno.serve(async (req: Request) => {
           minute: '2-digit'
         })
 
+        // Obtener nombre del motivo si existe
+        const motivo = (cita as any).motivos_consulta?.nombre
+
         // Mensaje con botones inline
         const mensaje = `🦷 *Recordatorio de cita - Molaris Ops*\n\n` +
           `Hola *${nombreCompleto}*, te recordamos que tienes una cita programada para *mañana*:\n\n` +
           `📅 *Fecha:* ${fechaFormateada}\n` +
           `⏰ *Hora:* ${horaFormateada}\n` +
-          `⏱️ *Duración:* ${cita.duracion_minutos} minutos\n\n` +
-          `✅ *¿Confirmas tu asistencia?*\n\n` +
+          `⏱️ *Duración:* ${cita.duracion_minutos} minutos\n` +
+          (motivo ? `🦷 *Motivo:* ${motivo}\n` : '') +
+          `\n✅ *¿Confirmas tu asistencia?*\n\n` +
           `Por favor, selecciona una opción:`
 
         // Crear teclado inline con botones

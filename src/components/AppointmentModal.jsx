@@ -202,7 +202,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
     setIsSubmitting(true);
     try {
       const fechaHora = new Date(`${formData.fecha}T${formData.hora}`).toISOString();
-      const { fecha, hora, ...rest } = formData;
+      const { fecha, hora, costo, ...rest } = formData;
       await onSave({ ...rest, fecha_hora: fechaHora });
       onClose();
     } catch (error) {
