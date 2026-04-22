@@ -32,6 +32,17 @@ Deno.serve(async (req: Request) => {
     const chatIdStr = chat_id.toString()
     let state = userStates.get(chatIdStr) || { step: 'start' }
 
+    // Redirigir el callback a la función especializada
+    const callbackQuery = update.callback_query
+    if (callbackQuery) {
+      const callbackResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/telegram-callback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(update)
+      })
+      return callbackResponse
+    }
+
     // Comando /start
     if (text === '/start') {
       state = { step: 'awaiting_document' }
@@ -50,7 +61,7 @@ Deno.serve(async (req: Request) => {
     if (text === '/cancel') {
       userStates.delete(chatIdStr)
       await sendMessage(chat_id, BOT_TOKEN,
-        `cOperación cancelada.\n\nPuedes iniciar nuevamente con /start`,
+        `Operación cancelada.\n\nPuedes iniciar nuevamente con /start`,
         null
       )
       return new Response('OK', { status: 200 })

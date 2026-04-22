@@ -27,7 +27,7 @@ Deno.serve(async (req: Request) => {
 
     console.log(`Buscando citas entre ${mananaInicio.toISOString()} y ${mananaFin.toISOString()}`)
 
-    // 1. Buscar citas programadas para mañana
+    // 1. Buscar citas programadas para mañana que NO tengan recordatorio enviado
     const { data: citas, error: citasError } = await supabase
       .from('citas')
       .select(`
@@ -53,17 +53,26 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: citasError.message }), { status: 500 })
     }
 
-    if (!citas || citas.length === 0) {
-      console.log('No hay citas para mañana')
+    // Filtrar citas que ya tienen recordatorio enviado
+    const { data: recordatoriosExistentes } = await supabase
+      .from('recordatorios')
+      .select('cita_id')
+      .in('cita_id', citas?.map(c => c.id) || [])
+
+    const idsConRecordatorio = new Set(recordatoriosExistentes?.map(r => r.cita_id) || [])
+    const citasPendientes = citas?.filter(c => !idsConRecordatorio.has(c.id)) || []
+
+    if (citasPendientes.length === 0) {
+      console.log('No hay citas pendientes para mañana')
       return new Response(JSON.stringify({ message: 'No hay citas', count: 0 }))
     }
 
-    console.log(`Encontradas ${citas.length} citas para mañana`)
+    console.log(`Encontradas ${citasPendientes.length} citas para recordatorio`)
 
-    // 2. Procesar cada cita
+    // 2. Procesar cada cita con botones
     const resultados = []
 
-    for (const cita of citas) {
+    for (const cita of citasPendientes) {
       try {
         const paciente = cita.pacientes
         const nombreCompleto = `${paciente.nombre} ${paciente.apellido}`
@@ -81,23 +90,34 @@ Deno.serve(async (req: Request) => {
           minute: '2-digit'
         })
 
-        // Mensaje personalizado
+        // Mensaje con botones inline
         const mensaje = `🦷 *Recordatorio de cita - Molaris Ops*\n\n` +
           `Hola *${nombreCompleto}*, te recordamos que tienes una cita programada para *mañana*:\n\n` +
           `📅 *Fecha:* ${fechaFormateada}\n` +
           `⏰ *Hora:* ${horaFormateada}\n` +
           `⏱️ *Duración:* ${cita.duracion_minutos} minutos\n\n` +
-          `📍 Te esperamos en la clínica.\n\n` +
-          `_Si no puedes asistir, por favor comunícate con nosotros con anticipación._`
+          `✅ *¿Confirmas tu asistencia?*\n\n` +
+          `Por favor, selecciona una opción:`
 
-        // Enviar mensaje por Telegram
+        // Crear teclado inline con botones
+        const replyMarkup = {
+          inline_keyboard: [
+            [
+              { text: "✅ Sí, confirmo mi asistencia", callback_data: `confirmar_${cita.id}` },
+              { text: "❌ No, cancelar cita", callback_data: `cancelar_${cita.id}` }
+            ]
+          ]
+        }
+
+        // Enviar mensaje con botones
         const telegramResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: parseInt(paciente.telegram_chat_id),
             text: mensaje,
-            parse_mode: 'Markdown'
+            parse_mode: 'Markdown',
+            reply_markup: replyMarkup
           })
         })
 
@@ -124,11 +144,12 @@ Deno.serve(async (req: Request) => {
             enviado_en: new Date().toISOString()
           })
 
-        console.log(`✅ Recordatorio enviado a ${nombreCompleto}`)
+        console.log(`✅ Recordatorio enviado a ${nombreCompleto} con botones`)
         resultados.push({
           cita_id: cita.id,
           paciente: nombreCompleto,
-          success: true
+          success: true,
+          message_id: telegramResult.result.message_id
         })
 
       } catch (error) {
@@ -143,7 +164,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({
       success: true,
-      total: citas.length,
+      total: citasPendientes.length,
       enviados: resultados.filter(r => r.success).length,
       fallidos: resultados.filter(r => !r.success).length,
       detalles: resultados
