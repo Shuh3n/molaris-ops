@@ -4,7 +4,7 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, en
 import { es, enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 
-const CustomDatePicker = ({ value, onChange, label, placeholder, icon = 'calendar_today', maxDate = new Date(), minDate }) => {
+const CustomDatePicker = ({ value, onChange, label, placeholder, icon = 'calendar_today', maxDate = null, minDate }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -77,12 +77,16 @@ const CustomDatePicker = ({ value, onChange, label, placeholder, icon = 'calenda
     if (val.length === 8) {
       const parsedDate = parse(maskedVal, dateFormat, new Date());
       if (isValid(parsedDate)) {
-        // Validación de fecha futura
         if (maxDate && isAfter(parsedDate, maxDate) && !isSameDay(parsedDate, maxDate)) {
           setIsInvalid(true);
           return;
         }
         if (minDate && isBefore(parsedDate, startOfToday()) && !isSameDay(parsedDate, startOfToday())) {
+          setIsInvalid(true);
+          return;
+        }
+        // No se permiten domingos
+        if (parsedDate.getDay() === 0) {
           setIsInvalid(true);
           return;
         }
@@ -103,6 +107,7 @@ const CustomDatePicker = ({ value, onChange, label, placeholder, icon = 'calenda
   const handleDateClick = (date) => {
     if (maxDate && isAfter(date, maxDate) && !isSameDay(date, maxDate)) return;
     if (minDate && isBefore(date, startOfToday()) && !isSameDay(date, startOfToday())) return;
+    if (date.getDay() === 0) return; // No domingos
     setIsInvalid(false);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -169,10 +174,13 @@ const CustomDatePicker = ({ value, onChange, label, placeholder, icon = 'calenda
                   }).map((day, i) => {
                     const isSelected = value && format(day, 'yyyy-MM-dd') === value.split('T')[0];
                     const isFuture = maxDate && isAfter(day, maxDate) && !isSameDay(day, maxDate);
-                    const isDisabled = !isSameMonth(day, currentMonth) || isFuture || (minDate && isBefore(day, startOfToday()) && !isSameDay(day, startOfToday()));
+                    const isPast = minDate && isBefore(day, startOfToday()) && !isSameDay(day, startOfToday());
+                    const isSunday = day.getDay() === 0;
+                    const isDisabled = !isSameMonth(day, currentMonth) || isFuture || isPast || isSunday;
                     return (
                       <button key={i} type="button" disabled={isDisabled} onClick={() => handleDateClick(day)}
-                        className={`h-9 w-9 flex items-center justify-center rounded-xl text-xs font-bold transition-all relative ${isSelected ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110 z-10' : isDisabled ? 'text-slate-200 cursor-not-allowed' : 'text-slate-600 hover:bg-primary/5 hover:text-primary'} ${isToday(day) && !isSelected ? 'text-primary ring-1 ring-primary/20 bg-primary/5' : ''}`}>
+                        title={isSunday ? 'No disponible' : undefined}
+                        className={`h-9 w-9 flex items-center justify-center rounded-xl text-xs font-bold transition-all relative ${isSelected ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110 z-10' : isSunday ? 'text-slate-200 cursor-not-allowed line-through' : isDisabled ? 'text-slate-200 cursor-not-allowed' : 'text-slate-600 hover:bg-primary/5 hover:text-primary'} ${isToday(day) && !isSelected ? 'text-primary ring-1 ring-primary/20 bg-primary/5' : ''}`}>
                         {format(day, 'd')}
                       </button>
                     );

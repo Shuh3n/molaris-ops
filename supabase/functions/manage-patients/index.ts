@@ -18,15 +18,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Autenticación
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('No se encontró el token de autorización')
-    
+
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
-    
     if (authError || !user) throw new Error('No autorizado: ' + (authError?.message || 'Usuario no encontrado'))
 
-    // 1. Obtener la clinica_id del perfil del usuario logueado
+    // Perfil y clínica del usuario
     const { data: profile, error: profileError } = await supabaseClient
       .from('perfiles')
       .select('clinica_id')
@@ -34,28 +34,67 @@ serve(async (req) => {
       .single()
 
     if (profileError || !profile?.clinica_id) {
-      console.error('Error de Perfil:', profileError)
       throw new Error('Tu cuenta no tiene una clínica asignada. Contacta al administrador.')
     }
-    
-    const clinica_id = profile.clinica_id
 
+    const clinica_id = profile.clinica_id
     const url = new URL(req.url)
     const method = req.method
     const id = url.searchParams.get('id')
     const showAll = url.searchParams.get('all') === 'true'
+    const search = url.searchParams.get('search') || ''
 
+    // ── GET ────────────────────────────────────────────────────────────────────
     if (method === 'GET') {
       let query = supabaseClient
         .from('pacientes')
         .select('*')
         .eq('clinica_id', clinica_id)
-      
+
       if (!showAll) {
         query = query.eq('activo', true)
       }
 
+      if (search) {
+        query = query.or(`nombre.ilike.%${search}%,apellido.ilike.%${search}%,documento_id.ilike.%${search}%`)
+      }
+
       const { data, error } = await query.order('nombre', { ascending: true })
+      if (error) throw error
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
+    }
+
+    // ── POST: Crear paciente ───────────────────────────────────────────────────
+    if (method === 'POST') {
+      const body = await req.json()
+      const { data, error } = await supabaseClient
+        .from('pacientes')
+        .insert([{ ...body, clinica_id }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 201,
+      })
+    }
+
+    // ── PUT: Actualizar paciente ───────────────────────────────────────────────
+    if (method === 'PUT') {
+      if (!id) throw new Error('Se requiere un ID para actualizar')
+      const body = await req.json()
+      const { data, error } = await supabaseClient
+        .from('pacientes')
+        .update({ ...body, actualizado_en: new Date().toISOString() })
+        .eq('id', id)
+        .eq('clinica_id', clinica_id)
+        .select()
+        .single()
 
       if (error) throw error
       return new Response(JSON.stringify(data), {
@@ -64,62 +103,36 @@ serve(async (req) => {
       })
     }
 
-    if (method === 'POST') {
+    // ── PATCH: Actualización parcial (ej. reactivar) ──────────────────────────
+    if (method === 'PATCH') {
+      if (!id) throw new Error('Se requiere un ID para actualizar')
       const body = await req.json()
-      
-      // Limpiamos el body de cualquier clinica_id que traiga para que no nos engañen
-      const { clinica_id: _, ...patientData } = body
-      
       const { data, error } = await supabaseClient
         .from('pacientes')
-        .insert([{ ...patientData, clinica_id }]) // Forzamos la ID de la clínica del recepcionista
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Error DB al crear:', error)
-        throw new Error(error.message)
-      }
-      
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 201,
-      })
-    }
-
-    if (method === 'PUT' || method === 'PATCH') {
-      if (!id) throw new Error('Se requiere el ID del paciente para actualizar')
-      const body = await req.json()
-      
-      // Aseguramos que solo actualice pacientes de SU propia clínica
-      const { data, error } = await supabaseClient
-        .from('pacientes')
-        .update(body)
+        .update({ ...body, actualizado_en: new Date().toISOString() })
         .eq('id', id)
         .eq('clinica_id', clinica_id)
         .select()
         .single()
 
-      if (error) throw new Error(error.message)
-      
+      if (error) throw error
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
+    // ── DELETE: Desactivar paciente (soft delete) ─────────────────────────────
     if (method === 'DELETE') {
-      if (!id) throw new Error('Se requiere el ID del paciente')
-      const { data, error } = await supabaseClient
+      if (!id) throw new Error('Se requiere un ID para eliminar')
+      const { error } = await supabaseClient
         .from('pacientes')
-        .update({ activo: false })
+        .update({ activo: false, actualizado_en: new Date().toISOString() })
         .eq('id', id)
         .eq('clinica_id', clinica_id)
-        .select()
-        .single()
 
-      if (error) throw new Error(error.message)
-      return new Response(JSON.stringify({ message: 'Paciente desactivado', data }), {
+      if (error) throw error
+      return new Response(JSON.stringify({ message: 'Paciente desactivado correctamente' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })

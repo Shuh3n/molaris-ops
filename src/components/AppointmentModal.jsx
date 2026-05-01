@@ -279,7 +279,13 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                         <CustomDatePicker 
                           label={t('appointments.modal.date')}
                           value={formData.fecha}
-                          onChange={(val) => { setFormData({...formData, fecha: val}); setError(''); }}
+                          onChange={(val) => {
+                            const isSat = new Date(val + 'T00:00:00').getDay() === 6;
+                            const [h] = (formData.hora || '09:00').split(':').map(Number);
+                            const newHora = (isSat && h > 16) ? '09:00' : formData.hora;
+                            setFormData({ ...formData, fecha: val, hora: newHora });
+                            setError('');
+                          }}
                           minDate={new Date()}
                         />
                         <div className="relative">
@@ -287,6 +293,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                             label={t('appointments.modal.time')}
                             value={formData.hora}
                             onChange={(val) => setFormData({...formData, hora: val})}
+                            selectedDate={formData.fecha}
                           />
                           {isChecking && (
                             <div className="absolute right-4 bottom-4">
