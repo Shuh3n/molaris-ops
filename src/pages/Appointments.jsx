@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import AppointmentModal from '../components/AppointmentModal';
+import AppointmentDetailModal from '../components/AppointmentDetailModal';
 import ConfirmModal from '../components/ConfirmModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../components/ToastContext';
@@ -13,6 +14,7 @@ const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [viewMode, setViewMode] = useState('list');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -190,6 +192,7 @@ const Appointments = () => {
                         key={apt.id}
                         appointment={apt}
                         statusColor={getStatusColor(apt.estado)}
+                        onView={() => { setSelectedAppointment(apt); setIsDetailOpen(true); }}
                         onEdit={() => { setSelectedAppointment(apt); setIsModalOpen(true); }}
                         onStatusChange={(status) => triggerStatusChange(apt.id, status)}
                       />
@@ -200,13 +203,21 @@ const Appointments = () => {
             </motion.div>
           ) : (
             <motion.div key="calendar-view" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <CalendarView appointments={appointments} currentDate={currentDate} setCurrentDate={setCurrentDate} onAppointmentClick={(apt) => { setSelectedAppointment(apt); setIsModalOpen(true); }} />
+              <CalendarView appointments={appointments} currentDate={currentDate} setCurrentDate={setCurrentDate} onAppointmentClick={(apt) => { setSelectedAppointment(apt); setIsDetailOpen(true); }} />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
       <AppointmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveAppointment} appointment={selectedAppointment} />
+      
+      <AppointmentDetailModal 
+        isOpen={isDetailOpen} 
+        onClose={() => setIsDetailOpen(false)} 
+        appointment={selectedAppointment} 
+        onEdit={() => setIsModalOpen(true)}
+        onStatusChange={(status) => triggerStatusChange(selectedAppointment.id, status)}
+      />
 
       <ConfirmModal 
         isOpen={confirmConfig.isOpen}
@@ -223,7 +234,7 @@ const Appointments = () => {
   );
 };
 
-const AppointmentCard = ({ appointment, statusColor, onEdit, onStatusChange }) => {
+const AppointmentCard = ({ appointment, statusColor, onView, onEdit, onStatusChange }) => {
   const { t } = useTranslation();
   const date = new Date(appointment.fecha_hora);
   return (
@@ -247,20 +258,29 @@ const AppointmentCard = ({ appointment, statusColor, onEdit, onStatusChange }) =
         <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-widest ${statusColor}`}>{t(`appointments.status.${appointment.estado}`)}</span>
       </div>
       <div className="col-span-1 flex justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+        <button onClick={onView} className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all cursor-pointer bg-slate-50 sm:bg-transparent shadow-sm border border-slate-50" title="Ver Detalles"><span className="material-symbols-outlined text-lg">visibility</span></button>
         {appointment.estado === 'programada' && (
           <>
             <button onClick={() => onStatusChange('completada')} className="w-8 h-8 flex items-center justify-center text-green-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all cursor-pointer shadow-sm border border-slate-50" title="Completar"><span className="material-symbols-outlined text-lg">check_circle</span></button>
             <button onClick={() => onStatusChange('cancelada')} className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer shadow-sm border border-slate-50" title="Cancelar"><span className="material-symbols-outlined text-lg">cancel</span></button>
           </>
         )}
-        <button onClick={onEdit} className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all cursor-pointer bg-slate-50 sm:bg-transparent shadow-sm border border-slate-50"><span className="material-symbols-outlined text-lg">edit</span></button>
+        <button onClick={onEdit} className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all cursor-pointer bg-slate-50 sm:bg-transparent shadow-sm border border-slate-50" title="Editar"><span className="material-symbols-outlined text-lg">edit</span></button>
       </div>
     </motion.div>
   );
 };
 
 const CalendarView = ({ appointments, currentDate, setCurrentDate, onAppointmentClick }) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const monthNames = i18n.language === 'es' ? 
     ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"] :
     ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -280,17 +300,75 @@ const CalendarView = ({ appointments, currentDate, setCurrentDate, onAppointment
   const calendarDays = [];
   for (let i = 0; i < firstDay; i++) calendarDays.push(null);
   for (let i = 1; i <= daysInMonth; i++) calendarDays.push(i);
+  // Pad to 42 to keep the grid stable
+  while (calendarDays.length < 42) calendarDays.push(null);
 
   const getAppointmentsForDay = (day) => {
     if (!day) return [];
     return appointments.filter(apt => {
       const aptDate = new Date(apt.fecha_hora);
       return aptDate.getDate() === day && aptDate.getMonth() === month && aptDate.getFullYear() === year;
-    });
+    }).sort((a, b) => new Date(a.fecha_hora) - new Date(b.fecha_hora));
   };
 
+  if (isMobile) {
+    return (
+      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+        <div className="px-6 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+          <div className="text-left">
+            <h3 className="text-xl font-black text-slate-900 tracking-tight">{monthNames[month]} {year}</h3>
+          </div>
+          <div className="flex gap-1">
+            <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary bg-white rounded-lg shadow-sm border border-slate-100">
+              <span className="material-symbols-outlined text-sm">chevron_left</span>
+            </button>
+            <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary bg-white rounded-lg shadow-sm border border-slate-100">
+              <span className="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <div className="p-4 space-y-4">
+          {calendarDays.filter(d => d !== null).map(day => {
+            const dayApts = getAppointmentsForDay(day);
+            if (dayApts.length === 0) return null;
+            return (
+              <div key={day} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 px-2 py-1 rounded-lg">
+                    {day} {monthNames[month].slice(0, 3)}
+                  </span>
+                  <div className="h-px bg-slate-100 flex-1"></div>
+                </div>
+                <div className="space-y-1">
+                  {dayApts.map(apt => (
+                    <button key={apt.id} onClick={() => onAppointmentClick(apt)}
+                      className="w-full flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 text-left active:scale-[0.98] transition-all">
+                      <div>
+                        <p className="text-xs font-bold text-slate-900">{apt.pacientes?.nombre} {apt.pacientes?.apellido}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">{apt.motivos_consulta?.nombre || 'Consulta'}</p>
+                      </div>
+                      <span className="text-[10px] font-black text-primary">
+                        {new Date(apt.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+          {calendarDays.filter(d => d !== null && getAppointmentsForDay(d).length > 0).length === 0 && (
+            <div className="py-10 text-center text-slate-300">
+              <span className="material-symbols-outlined text-4xl mb-2 opacity-20">event_busy</span>
+              <p className="text-sm italic font-medium">No hay citas en este mes</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[700px]">
+    <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col min-h-[850px]">
       <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
         <div className="text-left">
           <h3 className="text-2xl font-black text-slate-900 tracking-tight">{monthNames[month]} {year}</h3>
@@ -317,29 +395,51 @@ const CalendarView = ({ appointments, currentDate, setCurrentDate, onAppointment
         ))}
       </div>
 
-      <div className="flex-1 grid grid-cols-7 grid-rows-6 overflow-hidden">
+      <div className="flex-1 grid grid-cols-7 auto-rows-min overflow-hidden">
         {calendarDays.map((day, idx) => {
           const dayAppointments = getAppointmentsForDay(day);
+          const hasPending = dayAppointments.some(apt => apt.estado === 'programada');
           const isToday = day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear();
           
           return (
-            <div key={idx} className={`p-2 border-r border-b border-slate-50 min-h-0 flex flex-col gap-1 hover:bg-slate-50/50 transition-all ${idx % 7 === 6 ? 'border-r-0' : ''}`}>
+            <div key={idx} className={`p-1 sm:p-2 border-r border-b border-slate-50 flex flex-col gap-1 hover:bg-slate-50/30 transition-all ${idx % 7 === 6 ? 'border-r-0' : ''} ${hasPending ? 'min-h-[120px] sm:min-h-[160px]' : 'min-h-[40px] sm:min-h-[60px]'}`}>
               {day && (
                 <>
-                  <div className="flex justify-between items-center px-2 py-1 mb-1">
-                    <span className={`text-xs font-black ${isToday ? 'bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg shadow-primary/20' : 'text-slate-400'}`}>
+                  <div className="flex justify-between items-center px-2 py-0.5 mb-0.5">
+                    <span className={`text-[10px] sm:text-xs font-black ${isToday ? 'bg-primary text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shadow-lg shadow-primary/20' : 'text-slate-400'}`}>
                       {day}
                     </span>
-                    {dayAppointments.length > 0 && <span className="w-1.5 h-1.5 bg-primary rounded-full" />}
+                    {dayAppointments.length > 0 && <span className="text-[9px] font-black text-slate-300 bg-slate-100 px-1.5 rounded-md">{dayAppointments.length}</span>}
                   </div>
-                  <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-1">
-                    {dayAppointments.slice(0, 3).map(apt => (
-                      <button key={apt.id} onClick={() => onAppointmentClick(apt)}
-                        className="text-[9px] font-bold p-1.5 bg-primary/5 text-primary rounded-lg text-left truncate hover:bg-primary hover:text-white transition-all border border-primary/5">
-                        {new Date(apt.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} {apt.pacientes?.nombre}
-                      </button>
-                    ))}
-                  </div>
+                  {hasPending && (
+                    <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-1.5 pb-2">
+                      {dayAppointments.map(apt => (
+                        <button key={apt.id} onClick={() => onAppointmentClick(apt)}
+                          className={`text-[10px] font-bold p-2 rounded-xl text-left truncate transition-all border shadow-sm ${
+                            apt.estado === 'completada' ? 'bg-green-50 text-green-700 border-green-100 opacity-60' :
+                            apt.estado === 'cancelada' ? 'bg-red-50 text-red-700 border-red-100 opacity-60' :
+                            'bg-white text-slate-700 border-slate-100 hover:border-primary hover:text-primary'
+                          }`}>
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="opacity-60 text-[9px]">{new Date(apt.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span className="material-symbols-outlined text-[10px]">visibility</span>
+                          </div>
+                          <div className="truncate">{apt.pacientes?.nombre} {apt.pacientes?.apellido}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {!hasPending && dayAppointments.length > 0 && (
+                    <div className="flex flex-wrap gap-0.5 px-1 pb-1">
+                      {dayAppointments.map(apt => (
+                        <div key={apt.id} className={`w-1.5 h-1.5 rounded-full ${
+                          apt.estado === 'completada' ? 'bg-green-400' :
+                          apt.estado === 'cancelada' ? 'bg-red-400' :
+                          'bg-primary'
+                        }`} title={apt.pacientes?.nombre} />
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </div>

@@ -9,6 +9,10 @@
         "SUPABASE_URL": "$VITE_SUPABASE_URL",
         "SUPABASE_ACCESS_TOKEN_MOLARIS": "$SUPABASE_ACCESS_TOCKEN_MOLARIS"
       }
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=rhwfhccjgjsmtwpsmndh",
+      "type": "http"
     }
   }
 }

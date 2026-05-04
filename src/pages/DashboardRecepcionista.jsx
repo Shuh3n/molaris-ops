@@ -14,10 +14,48 @@ const DashboardRecepcionista = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [logs, setLogs] = useState([]);
   const { addToast } = useToast();
   const hoverTimerRef = useRef(null);
+  const notificationsRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchLogs = async (clinicaId) => {
+    try {
+      const { data, error } = await supabase
+        .from('logs_actividad')
+        .select(`
+          *,
+          perfiles (nombre_completo)
+        `)
+        .eq('clinica_id', clinicaId)
+        .order('creado_en', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      setLogs(data);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userProfile?.clinica_id) {
+      fetchLogs(userProfile.clinica_id);
+    }
+  }, [userProfile]);
 
   const handleSaveAppointment = async (formData) => {
     try {
@@ -175,7 +213,6 @@ const DashboardRecepcionista = () => {
                 <NavItem to="/dashboard/recepcionista/citas" icon="calendar_today" label={t('common.appointments')} expanded={isExpanded} />
                 <NavItem to="/dashboard/recepcionista/facturacion" icon="payments" label={t('common.billing')} expanded={isExpanded} />
                 <NavItem to="/dashboard/recepcionista/pacientes" icon="group" label={t('common.patients')} expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/notificaciones" icon="notifications" label={t('common.notifications')} expanded={isExpanded} />
                 <NavItem to="/dashboard/recepcionista/ajustes" icon="settings" label={t('common.settings')} expanded={isExpanded} />
               </nav>
 
@@ -211,11 +248,79 @@ const DashboardRecepcionista = () => {
             <div className="hidden md:flex items-center gap-6 pr-6 border-r border-slate-100 shrink-0">
               <LanguageToggle />
             </div>
-            <div className="flex items-center gap-2 lg:gap-4 shrink-0">
-              <button className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all relative">
+            <div className="flex items-center gap-2 lg:gap-4 shrink-0 relative" ref={notificationsRef}>
+              <button 
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all relative ${isNotificationsOpen ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-primary hover:bg-primary/5'}`}
+              >
                 <span className="material-symbols-outlined">notifications</span>
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                {logs.length > 0 && !isNotificationsOpen && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                )}
               </button>
+
+              <AnimatePresence>
+                {isNotificationsOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 top-full mt-3 w-80 sm:w-96 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden z-[100]"
+                  >
+                    <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                      <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">{t('common.notifications')}</h3>
+                      <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-lg">LOGS</span>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto no-scrollbar">
+                      {logs.length === 0 ? (
+                        <div className="p-10 text-center text-slate-300">
+                          <span className="material-symbols-outlined text-4xl mb-2 opacity-20">history</span>
+                          <p className="text-xs italic font-medium">No hay actividad reciente</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-50">
+                          {logs.map((log) => (
+                            <div key={log.id} className="p-4 hover:bg-slate-50 transition-colors flex gap-4">
+                              <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center ${
+                                log.accion === 'creacion' ? 'bg-green-50 text-green-500' :
+                                log.accion === 'cambio_estado' ? 'bg-blue-50 text-blue-500' :
+                                'bg-slate-50 text-slate-500'
+                              }`}>
+                                <span className="material-symbols-outlined text-lg">
+                                  {log.entidad_tipo === 'citas' ? 'calendar_month' : 'person'}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className="text-xs font-bold text-slate-900 leading-tight">
+                                  {log.perfiles?.nombre_completo || 'Sistema'} 
+                                  <span className="font-medium text-slate-500 ml-1">
+                                    {log.accion === 'creacion' ? 'creó' : 
+                                     log.accion === 'cambio_estado' ? 'actualizó el estado de' : 
+                                     'actualizó'} una {log.entidad_tipo === 'citas' ? 'cita' : 'paciente'}
+                                  </span>
+                                </p>
+                                {log.detalles?.estado_nuevo && (
+                                  <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 rounded text-[9px] font-black uppercase tracking-tighter text-slate-500">
+                                    → {log.detalles.estado_nuevo}
+                                  </span>
+                                )}
+                                <p className="text-[9px] text-slate-400 mt-1 font-medium">
+                                  {new Date(log.creado_en).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(log.creado_en).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4 bg-slate-50/50 border-t border-slate-50 text-center">
+                      <button onClick={() => { setIsNotificationsOpen(false); navigate('/dashboard/recepcionista/pacientes'); }} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline transition-all">
+                        Ver todo el historial
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             <button onClick={() => setIsAppointmentModalOpen(true)} className="bg-primary text-white px-4 lg:px-6 py-3 rounded-2xl font-black text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
               <span className="material-symbols-outlined text-lg">add_circle</span>
@@ -245,6 +350,63 @@ const DashboardRecepcionista = () => {
 const DashboardHome = ({ userProfile, t }) => {
   const { i18n } = useTranslation();
   const currentLocale = i18n.language.startsWith('es') ? 'es-ES' : 'en-US';
+  const [stats, setStats] = useState({ today: 0, pending: 0 });
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!userProfile?.clinica_id) return;
+      setLoading(true);
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // Stats: Today's appointments
+        const { count: todayCount } = await supabase
+          .from('citas')
+          .select('*', { count: 'exact', head: true })
+          .eq('clinica_id', userProfile.clinica_id)
+          .gte('fecha_hora', today.toISOString())
+          .lt('fecha_hora', tomorrow.toISOString())
+          .neq('estado', 'cancelada');
+
+        // Stats: Pending appointments
+        const { count: pendingCount } = await supabase
+          .from('citas')
+          .select('*', { count: 'exact', head: true })
+          .eq('clinica_id', userProfile.clinica_id)
+          .eq('estado', 'programada');
+
+        setStats({ today: todayCount || 0, pending: pendingCount || 0 });
+
+        // Upcoming schedule
+        const { data: upcoming } = await supabase
+          .from('citas')
+          .select(`
+            id,
+            fecha_hora,
+            estado,
+            pacientes (nombre, apellido),
+            motivos_consulta:motivo_id (nombre)
+          `)
+          .eq('clinica_id', userProfile.clinica_id)
+          .gte('fecha_hora', today.toISOString())
+          .order('fecha_hora', { ascending: true })
+          .limit(5);
+
+        setUpcomingAppointments(upcoming || []);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [userProfile]);
   
   return (
     <div>
@@ -264,24 +426,55 @@ const DashboardHome = ({ userProfile, t }) => {
               <div>
                 <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('dashboard.schedule.title')}</h2>
                 <p className="text-slate-900 font-black text-lg mt-1 tracking-tight">
-                  {new Date().toLocaleDateString(currentLocale, { month: 'long', day: 'numeric' })} — {new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString(currentLocale, { month: 'long', day: 'numeric', year: 'numeric' })}
+                  Próximas Citas
                 </p>
               </div>
               <span className="material-symbols-outlined text-primary bg-white p-2 rounded-xl shadow-sm border border-slate-50">calendar_view_week</span>
             </div>
-            <div className="grid grid-cols-7 border-b border-slate-50 bg-slate-50/20">
-                {['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'].map(d => (
-                  <div key={d} className="p-4 text-[10px] font-black text-slate-400 uppercase text-center border-r border-slate-100 last:border-r-0">
-                    {t(`common.days.${d}`)}
-                  </div>
-                ))}
-            </div>
-            <div className="h-[400px] flex items-center justify-center bg-white relative overflow-hidden group">
-              <div className="flex flex-col items-center gap-4 text-slate-300 relative z-10">
-                <span className="material-symbols-outlined text-6xl group-hover:scale-110 transition-transform duration-500">calendar_month</span>
-                <p className="italic text-sm font-medium">Cargando horario dinámico...</p>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50/50"></div>
+            
+            <div className="min-h-[400px] bg-white relative overflow-hidden">
+              {loading ? (
+                <div className="h-full flex flex-col items-center justify-center gap-4 text-slate-300 py-20">
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
+                  <p className="italic text-sm font-medium">Cargando horario dinámico...</p>
+                </div>
+              ) : upcomingAppointments.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center gap-4 text-slate-300 py-20">
+                  <span className="material-symbols-outlined text-6xl opacity-20">event_busy</span>
+                  <p className="italic text-sm font-medium">No hay citas próximas programadas.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-50">
+                  {upcomingAppointments.map((apt) => (
+                    <div key={apt.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors group">
+                      <div className="flex items-center gap-6">
+                        <div className="text-center min-w-[60px] border-r border-slate-100 pr-6">
+                          <p className="text-sm font-black text-primary">
+                            {new Date(apt.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-300 uppercase">
+                            {new Date(apt.fecha_hora).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                          </p>
+                        </div>
+                        <div className="text-left">
+                          <h4 className="font-bold text-slate-900 tracking-tight">{apt.pacientes?.nombre} {apt.pacientes?.apellido}</h4>
+                          <p className="text-xs text-slate-400 font-medium">{apt.motivos_consulta?.nombre || 'Consulta General'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                          apt.estado === 'programada' ? 'bg-blue-50 text-blue-600' : 
+                          apt.estado === 'completada' ? 'bg-green-50 text-green-600' : 'bg-slate-50 text-slate-500'
+                        }`}>
+                          {t(`appointments.status.${apt.estado}`)}
+                        </span>
+                        <span className="material-symbols-outlined text-slate-200 group-hover:text-primary transition-colors">chevron_right</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
             </div>
           </section>
         </div>
@@ -295,14 +488,14 @@ const DashboardHome = ({ userProfile, t }) => {
                 <div className="bg-white/10 backdrop-blur-md rounded-[1.8rem] p-6 flex items-center justify-between border border-white/5 group hover:bg-white/20 transition-all cursor-pointer">
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-70">{t('dashboard.stats.appointments')}</span>
-                    <p className="text-3xl font-black mt-1">4</p>
+                    <p className="text-3xl font-black mt-1">{stats.today}</p>
                   </div>
                   <span className="material-symbols-outlined text-4xl opacity-30">check_circle</span>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md rounded-[1.8rem] p-6 flex items-center justify-between border border-white/5 group hover:bg-white/20 transition-all cursor-pointer">
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-70">{t('dashboard.stats.pending')}</span>
-                    <p className="text-3xl font-black mt-1">8</p>
+                    <p className="text-3xl font-black mt-1">{stats.pending}</p>
                   </div>
                   <span className="material-symbols-outlined text-4xl opacity-30">pending</span>
                 </div>

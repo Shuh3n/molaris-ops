@@ -1,9 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <div className="max-w-[1600px] mx-auto">
@@ -68,7 +70,7 @@ const Dashboard = () => {
           <section>
             <div className="flex items-center justify-between mb-8 px-2">
               <h3 className="text-2xl font-black tracking-tight text-slate-900">{t('dashboard.schedule.title')}</h3>
-              <button className="text-primary text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:translate-x-1 transition-transform cursor-pointer">
+              <button onClick={() => navigate('/dashboard/recepcionista/citas')} className="text-primary text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:translate-x-1 transition-transform cursor-pointer">
                 {t('dashboard.schedule.view_all')} <span className="material-symbols-outlined text-lg">arrow_forward</span>
               </button>
             </div>
@@ -110,9 +112,9 @@ const Dashboard = () => {
           <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8 ml-1">{t('dashboard.quick_actions.title')}</h3>
             <div className="space-y-4">
-              <QuickActionButton icon="add_circle" label={t('dashboard.quick_actions.create')} color="blue" />
-              <QuickActionButton icon="description" label={t('dashboard.quick_actions.invoice')} color="green" />
-              <QuickActionButton icon="history" label={t('dashboard.quick_actions.history')} color="amber" />
+              <QuickActionButton onClick={() => navigate('/dashboard/recepcionista/citas')} icon="add_circle" label={t('dashboard.quick_actions.create')} color="blue" />
+              <QuickActionButton onClick={() => navigate('/dashboard/recepcionista/facturacion')} icon="description" label={t('dashboard.quick_actions.invoice')} color="green" />
+              <QuickActionButton onClick={() => navigate('/dashboard/recepcionista/pacientes')} icon="history" label={t('dashboard.quick_actions.history')} color="amber" />
             </div>
           </div>
 
@@ -166,7 +168,7 @@ const AppointmentItem = ({ time, period, name, service, status, statusColor, img
   </div>
 );
 
-const QuickActionButton = ({ icon, label, color }) => {
+const QuickActionButton = ({ icon, label, color, onClick }) => {
     const colors = {
         blue: "bg-blue-50 text-primary group-hover:bg-primary",
         green: "bg-green-50 text-green-600 group-hover:bg-green-600",
@@ -174,7 +176,7 @@ const QuickActionButton = ({ icon, label, color }) => {
     };
 
     return (
-        <button className="w-full bg-white hover:shadow-md text-slate-700 p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 group border border-slate-100 cursor-pointer">
+        <button onClick={onClick} className="w-full bg-white hover:shadow-md text-slate-700 p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 group border border-slate-100 cursor-pointer">
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 ${colors[color]} group-hover:text-white group-hover:scale-110 group-hover:rotate-6 shadow-sm`}>
                 <span className="material-symbols-outlined">{icon}</span>
             </div>

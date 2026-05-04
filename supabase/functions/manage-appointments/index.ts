@@ -21,7 +21,23 @@ serve(async (req) => {
     const url = new URL(req.url)
     const method = req.method
     const id = url.searchParams.get('id')
-    const type = url.searchParams.get('type') // Para traer metadatos como motivos
+    const type = url.searchParams.get('type')
+
+    // Get User and Clinic ID
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) throw new Error('No authorization header')
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    if (userError || !user) throw new Error('Invalid token')
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('perfiles')
+      .select('clinica_id')
+      .eq('id', user.id)
+      .single()
+    
+    if (profileError || !profile?.clinica_id) throw new Error('User profile or clinic not found')
+    const clinica_id = profile.clinica_id
 
     // GET: Listar citas o motivos
     if (method === 'GET') {
@@ -43,6 +59,7 @@ serve(async (req) => {
           perfiles:dentista_id (nombre_completo),
           motivos_consulta:motivo_id (nombre)
         `)
+        .eq('clinica_id', clinica_id)
         .order('fecha_hora', { ascending: true })
 
       if (error) throw error
@@ -58,9 +75,15 @@ serve(async (req) => {
       if (!body.paciente_id || !body.fecha_hora) {
         throw new Error('Paciente y fecha/hora son obligatorios')
       }
+      
+      const appointmentData = {
+        ...body,
+        clinica_id: clinica_id // Ensure clinic ID is correct
+      }
+
       const { data, error } = await supabaseClient
         .from('citas')
-        .insert([body])
+        .insert([appointmentData])
         .select()
         .single()
       if (error) throw error
@@ -71,6 +94,18 @@ serve(async (req) => {
     if (method === 'PUT' || method === 'PATCH') {
       if (!id) throw new Error('ID is required for updates')
       const body = await req.json()
+      
+      // Verify the appointment belongs to the clinic before updating
+      const { data: checkData, error: checkError } = await supabaseClient
+        .from('citas')
+        .select('clinica_id')
+        .eq('id', id)
+        .single()
+      
+      if (checkError || checkData?.clinica_id !== clinica_id) {
+        throw new Error('Unauthorized or appointment not found')
+      }
+
       const { data, error } = await supabaseClient
         .from('citas')
         .update(body)
@@ -84,10 +119,13 @@ serve(async (req) => {
     // DELETE: Eliminar cita
     if (method === 'DELETE') {
       if (!id) throw new Error('ID is required for deletion')
+
       const { error } = await supabaseClient
         .from('citas')
         .delete()
         .eq('id', id)
+        .eq('clinica_id', clinica_id) // Extra safety
+
       if (error) throw error
       return new Response(JSON.stringify({ message: 'Appointment deleted successfully' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
     }
