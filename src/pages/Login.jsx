@@ -29,17 +29,27 @@ const Login = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('perfiles')
-        .select('rol_id, roles(nombre)')
+        .select('rol_id, roles(nombre), clinicas(activa, fecha_vencimiento)')
         .eq('id', data.user.id)
         .single();
 
       if (profileError) throw profileError;
 
+      // Verificar licencia
+      const clinic = profile.clinicas;
+      const isExpired = clinic?.fecha_vencimiento && new Date(clinic.fecha_vencimiento) < new Date();
+      
+      if (!clinic?.activa || isExpired) {
+        await supabase.auth.signOut();
+        throw new Error('Licencia inactiva o vencida. Contacte al administrador.');
+      }
+
       const roleName = profile.roles?.nombre;
       if (roleName === 'RECEPCIONISTA') {
         navigate('/dashboard/recepcionista');
+      } else if (roleName === 'ORTODONCISTA') {
+        navigate('/dashboard/dentista');
       } else {
-        // Por ahora redirigimos a recepcionista, pero podrías tener otros dashboards
         navigate('/dashboard/recepcionista');
       }
 
