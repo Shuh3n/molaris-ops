@@ -25,11 +25,12 @@ function App() {
           <Route path="facturacion/invoice/:id" element={<InvoicePreview />} />
           <Route path="pacientes" element={<Patients />} />
           <Route path="notificaciones" element={<Dashboard />} />
-          <Route path="ajustes" element={<Settings />} />
+          <Route path="gestion" element={<Settings />} />
         </Route>
 
         {/* Redirecciones de conveniencia */}
         <Route path="/dashboard" element={<Navigate to="/dashboard/recepcionista" replace />} />
+        <Route path="/settings" element={<Navigate to="/dashboard/recepcionista/gestion" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

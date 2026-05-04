@@ -56,7 +56,7 @@ const Login = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="bg-background font-body text-on-surface min-h-screen flex flex-col items-center justify-center p-6 selection:bg-primary-fixed selection:text-on-primary-fixed relative overflow-hidden"
+      className="bg-background font-body text-on-surface min-h-screen flex flex-col items-center justify-center p-6 pt-24 selection:bg-primary-fixed selection:text-on-primary-fixed relative overflow-hidden"
     >
       {/* Language Toggle */}
       <div className="absolute top-6 right-6 z-20">

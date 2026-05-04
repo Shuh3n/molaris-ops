@@ -43,7 +43,7 @@ const MainLayout = ({ children }) => {
           <SidebarItem to="/appointments" icon="calendar_today" label={t('common.appointments')} collapsed={isSidebarCollapsed} />
           <SidebarItem to="/billing" icon="payments" label={t('common.billing')} collapsed={isSidebarCollapsed} />
           <SidebarItem to="/patients" icon="group" label={t('common.patients')} collapsed={isSidebarCollapsed} />
-          <SidebarItem to="/settings" icon="settings" label={t('common.settings')} collapsed={isSidebarCollapsed} />
+          <SidebarItem to="/dashboard/recepcionista/gestion" icon="manage_accounts" label={t('common.settings')} collapsed={isSidebarCollapsed} />
         </nav>
 
         <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-1">

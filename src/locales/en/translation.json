@@ -41,7 +41,7 @@
     "appointments": "Appointments",
     "billing": "Billing",
     "patients": "Patients",
-    "settings": "Settings",
+    "settings": "Management",
     "clinic_slogan": "Dental Sanctuary",
     "export": "Export",
     "days": {
@@ -270,42 +270,52 @@
     }
   },
   "settings": {
-    "title": "Practice Settings",
-    "subtitle": "Manage your clinic identity and clinical workflows.",
+    "title": "Clinic Management",
+    "subtitle": "Total control over your identity, team, and automations.",
+    "tabs": {
+      "clinic": "Clinic",
+      "team": "Team",
+      "agenda": "Agenda",
+      "whatsapp": "WhatsApp"
+    },
     "sections": {
-      "info": "Clinic Information",
+      "info": "General Information",
       "branding": "Visual Identity",
-      "alerts": "Automated Alerts",
-      "access": "Access Levels"
+      "alerts": "Notifications",
+      "access": "Access Control",
+      "wsp_config": "WhatsApp Configuration",
+      "team_list": "Team Members"
     },
     "fields": {
       "name": "Practice Name",
       "id": "Clinic ID",
       "email": "Contact Email",
       "phone": "Primary Phone",
-      "emergency": "Emergency Line"
+      "emergency": "Emergency Line",
+      "wsp_template": "Reminder Template",
+      "wsp_status": "Bot Status"
     },
     "branding": {
-      "subtitle": "Update clinic photography and logo assets.",
-      "manage": "Manage Branding Assets"
+      "subtitle": "Manage clinic logo and aesthetics.",
+      "manage": "Upload Logo"
     },
     "alerts": {
       "reminders": "Appointment Reminders",
-      "reminders_desc": "Send SMS 24h before",
-      "checkins": "Patient Check-ins",
-      "checkins_desc": "Real-time desktop alerts",
-      "reports": "Billing Reports",
-      "reports_desc": "Monthly email summaries"
+      "reminders_desc": "Send automated WhatsApp message",
+      "checkins": "Front Desk Alerts",
+      "checkins_desc": "Real-time notifications upon arrival",
+      "reports": "Daily Reports",
+      "reports_desc": "Daily revenue summary"
     },
     "access": {
-      "manage": "Manage Permissions",
-      "admins": "Administrators",
-      "medical": "Medical Staff",
+      "manage": "Invite Member",
+      "admins": "Directors",
+      "medical": "Specialists",
       "front": "Front Desk"
     },
     "actions": {
-      "discard": "Discard Changes",
-      "save": "Save Configuration"
+      "discard": "Discard",
+      "save": "Apply Changes"
     }
   }
 }

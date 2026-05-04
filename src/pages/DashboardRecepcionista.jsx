@@ -213,7 +213,7 @@ const DashboardRecepcionista = () => {
                 <NavItem to="/dashboard/recepcionista/citas" icon="calendar_today" label={t('common.appointments')} expanded={isExpanded} />
                 <NavItem to="/dashboard/recepcionista/facturacion" icon="payments" label={t('common.billing')} expanded={isExpanded} />
                 <NavItem to="/dashboard/recepcionista/pacientes" icon="group" label={t('common.patients')} expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/ajustes" icon="settings" label={t('common.settings')} expanded={isExpanded} />
+                <NavItem to="/dashboard/recepcionista/gestion" icon="manage_accounts" label={t('common.settings')} expanded={isExpanded} />
               </nav>
 
               <div className="mt-auto p-3 border-t border-slate-100">

@@ -41,7 +41,7 @@
     "appointments": "Citas",
     "billing": "Facturación",
     "patients": "Pacientes",
-    "settings": "Ajustes",
+    "settings": "Gestión",
     "clinic_slogan": "Santuario Dental",
     "export": "Exportar",
     "days": {
@@ -275,42 +275,52 @@
     }
   },
   "settings": {
-    "title": "Ajustes de la Clínica",
-    "subtitle": "Gestiona la identidad de tu clínica y los flujos de trabajo clínicos.",
+    "title": "Gestión de la Clínica",
+    "subtitle": "Control total sobre tu identidad, equipo y automatizaciones.",
+    "tabs": {
+      "clinic": "Clínica",
+      "team": "Equipo",
+      "agenda": "Agenda",
+      "whatsapp": "WhatsApp"
+    },
     "sections": {
-      "info": "Información de la Clínica",
+      "info": "Información General",
       "branding": "Identidad Visual",
-      "alerts": "Alertas Automatizadas",
-      "access": "Niveles de Acceso"
+      "alerts": "Notificaciones",
+      "access": "Control de Acceso",
+      "wsp_config": "Configuración de WhatsApp",
+      "team_list": "Miembros del Equipo"
     },
     "fields": {
       "name": "Nombre de la Clínica",
       "id": "ID de la Clínica",
       "email": "Email de Contacto",
       "phone": "Teléfono Principal",
-      "emergency": "Línea de Emergencia"
+      "emergency": "Línea de Emergencia",
+      "wsp_template": "Plantilla de Recordatorio",
+      "wsp_status": "Estado del Bot"
     },
     "branding": {
-      "subtitle": "Actualiza la fotografía de la clínica y los activos del logo.",
-      "manage": "Gestionar Activos de Marca"
+      "subtitle": "Gestiona el logo y la estética de tu clínica.",
+      "manage": "Subir Logo"
     },
     "alerts": {
       "reminders": "Recordatorios de Citas",
-      "reminders_desc": "Enviar SMS 24h antes",
-      "checkins": "Check-ins de Pacientes",
-      "checkins_desc": "Alertas de escritorio en tiempo real",
-      "reports": "Informes de Facturación",
-      "reports_desc": "Resúmenes mensuales por email"
+      "reminders_desc": "Enviar mensaje automático vía WhatsApp",
+      "checkins": "Alertas de Recepción",
+      "checkins_desc": "Notificaciones cuando llega un paciente",
+      "reports": "Reportes Diarios",
+      "reports_desc": "Resumen de caja al cierre"
     },
     "access": {
-      "manage": "Gestionar Permisos",
-      "admins": "Administradores",
-      "medical": "Personal Médico",
-      "front": "Recepción"
+      "manage": "Invitar Miembro",
+      "admins": "Directivos",
+      "medical": "Especialistas",
+      "front": "Atención"
     },
     "actions": {
-      "discard": "Descartar Cambios",
-      "save": "Guardar Configuración"
+      "discard": "Descartar",
+      "save": "Aplicar Cambios"
     }
   }
 }
