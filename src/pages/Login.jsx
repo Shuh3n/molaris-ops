@@ -208,7 +208,7 @@ const Login = () => {
             </form>
 
             <div className="mt-12 pt-8 border-t border-slate-100 text-center text-slate-400 text-xs font-medium">
-              {t('login.new')} <a href="#" className="text-primary font-bold hover:underline">{t('login.request')}</a>
+              {t('login.new')} <Link to="/register" className="text-primary font-bold hover:underline">{t('login.request')}</Link>
             </div>
           </div>
         </section>

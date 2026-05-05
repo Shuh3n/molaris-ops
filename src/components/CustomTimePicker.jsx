@@ -17,18 +17,25 @@ const formatDisplayTime = (value) => {
   return `${h12}:${mStr} ${period}`;
 };
 
-const CustomTimePicker = ({ value, onChange, label, placeholder, icon = 'schedule', selectedDate }) => {
+const CustomTimePicker = ({ value, onChange, label, placeholder, icon = 'schedule', selectedDate, clinicHours }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
   const containerRef = useRef(null);
+
+  // Parse clinic hours (defaults if not provided)
+  const openH = clinicHours?.apertura ? parseInt(clinicHours.apertura.split(':')[0]) : 8;
+  const closeH = clinicHours?.cierre ? parseInt(clinicHours.cierre.split(':')[0]) : 20;
 
   // Determinar si el día seleccionado es sábado
   const isSaturday = selectedDate
     ? new Date(selectedDate + 'T00:00:00').getDay() === 6
     : false;
 
-  const allHours = Array.from({ length: 14 }, (_, i) => i + 7); // 7 AM → 8 PM
-  const hours = isSaturday ? allHours.filter(h => h <= 16) : allHours;
+  const hoursLength = (closeH - openH) + 1;
+  const allHours = Array.from({ length: Math.max(0, hoursLength) }, (_, i) => i + openH);
+  
+  // Sábado: limitamos hasta las 13:00 o lo que diga la clínica, lo que sea menor
+  const hours = isSaturday ? allHours.filter(h => h <= 13) : allHours;
   const minutes = ['00', '15', '30', '45'];
 
   useEffect(() => {

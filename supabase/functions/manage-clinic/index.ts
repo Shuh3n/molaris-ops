@@ -22,40 +22,96 @@ serve(async (req) => {
     if (action === 'invite_member') {
       const { email, nombre_completo, rol_id, clinica_id } = payload
 
-      // 1. Obtener límites de la licencia de la clínica y el nombre del rol
+      // 1. Obtener la clínica
       const { data: clinica, error: clinicaError } = await supabaseClient
         .from('clinicas')
-        .select('*, licencias(max_dentistas, max_recepcionistas)')
+        .select('*')
         .eq('id', clinica_id)
         .single()
 
       if (clinicaError || !clinica) {
-        throw new Error('No se pudo encontrar la información de la clínica o su licencia.')
+        throw new Error('No se pudo encontrar la información de la clínica.')
       }
 
-      const limits = clinica.licencias || { max_dentistas: 1, max_recepcionistas: 1 }
-      const { data: role } = await supabaseClient.from('roles').select('nombre').eq('id', rol_id).single()
+      // 2. Obtener la licencia asociada por ID
+      let licencia = null
+      if (clinica.licencia_id) {
+        const { data: lic, error: licError } = await supabaseClient
+          .from('licencias')
+          .select('*')
+          .eq('id', clinica.licencia_id)
+          .single()
+        if (!licError && lic) licencia = lic
+      }
+
+      // fallback a valores por defecto (Básica) si no hay licencia explícita
+      const limits = licencia || { max_dentistas: 1, max_recepcionistas: 1 }
+
+      // 3. Obtener el rol que se quiere asignar
+      const { data: role, error: roleError } = await supabaseClient
+        .from('roles')
+        .select('nombre')
+        .eq('id', rol_id)
+        .single()
       
-      const { count } = await supabaseClient
-        .from('perfiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('clinica_id', clinica_id)
-        .eq('rol_id', rol_id)
+      if (roleError || !role) throw new Error('El rol especificado no es válido.')
 
-      if (role.nombre === 'ORTODONCISTA' && (count ?? 0) >= limits.max_dentistas) {
-        throw new Error(`Límite de Odontólogos alcanzado (${limits.max_dentistas}) para esta clínica con su licencia actual.`)
-      }
-      if (role.nombre === 'RECEPCIONISTA' && (count ?? 0) >= limits.max_recepcionistas) {
-        throw new Error(`Límite de Recepcionistas alcanzado (${limits.max_recepcionistas}) para esta clínica con su licencia actual.`)
+      // 4. Validar límites según el rol
+      const isDoctor = role.nombre === 'ORTODONCISTA'
+      const isStaff = role.nombre === 'RECEPCIONISTA'
+
+      if (isDoctor || isStaff) {
+        const { count } = await supabaseClient
+          .from('perfiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('clinica_id', clinica_id)
+          .eq('rol_id', rol_id)
+
+        const max = isDoctor ? limits.max_dentistas : limits.max_recepcionistas
+        
+        if ((count ?? 0) >= (max ?? 1)) {
+          throw new Error(`Límite de ${isDoctor ? 'Odontólogos' : 'Recepcionistas'} alcanzado (${max}). Tu licencia actual no permite más miembros en este rol.`)
+        }
       }
 
-      // 2. Aquí iría la lógica de Auth para invitar (admin.inviteUserByEmail)
-      // Por simplicidad en este paso, devolvemos éxito.
-      
-      return new Response(JSON.stringify({ message: 'Invitación enviada' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
+      // 5. Intentar invitar al usuario en Auth y crear su perfil en BD
+      try {
+        // Usamos inviteUserByEmail para que Supabase envíe el correo de invitación
+        // Esto permite que el usuario elija su propia contraseña al aceptar.
+        const inviteRes = await supabaseClient.auth.admin.inviteUserByEmail(email, {
+          data: { nombre_completo },
+          // redirectTo: 'https://tu-dominio.com/login' // Opcional: configurar en Supabase Dashboard
+        })
+
+        const invitedUser = inviteRes?.data?.user
+
+        if (!invitedUser || !invitedUser.id) {
+          throw new Error((inviteRes?.error && inviteRes.error.message) || 'No se pudo enviar la invitación')
+        }
+
+        // Insertar perfil ligado al user id
+        const perfilPayload = {
+          id: invitedUser.id,
+          clinica_id,
+          nombre_completo,
+          rol_id,
+          email,
+        }
+
+        const { error: perfilError } = await supabaseClient.from('perfiles').upsert(perfilPayload)
+        if (perfilError) throw perfilError;
+
+        return new Response(JSON.stringify({ message: 'Invitación enviada correctamente' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      } catch (err) {
+        // Si la llamada admin no está disponible o falló, devolver información útil
+        return new Response(JSON.stringify({ error: err.message || String(err) }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        })
+      }
     }
 
     return new Response(JSON.stringify({ error: 'Acción no válida' }), {

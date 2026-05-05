@@ -42,6 +42,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
   };
 
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [clinicConfig, setClinicConfig] = useState(null);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -69,6 +70,14 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
         if (pError) console.error("Error fetching profile:", pError);
 
         if (myProfile?.clinica_id) {
+          const { data: clinic, error: cError } = await supabase
+            .from('clinicas')
+            .select('horario_apertura, horario_cierre')
+            .eq('id', myProfile.clinica_id)
+            .single();
+          
+          if (clinic) setClinicConfig(clinic);
+
           const { data: roleData } = await supabase
             .from('roles')
             .select('id')
@@ -294,6 +303,10 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                             value={formData.hora}
                             onChange={(val) => setFormData({...formData, hora: val})}
                             selectedDate={formData.fecha}
+                            clinicHours={{
+                              apertura: clinicConfig?.horario_apertura,
+                              cierre: clinicConfig?.horario_cierre
+                            }}
                           />
                           {isChecking && (
                             <div className="absolute right-4 bottom-4">
@@ -302,16 +315,31 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                           )}
                         </div>
                       </div>
-                      
-                      <CustomSelect 
-                        label={t('appointments.modal.dentist')}
-                        options={dentists}
-                        value={formData.dentista_id}
-                        onChange={(val) => setFormData({...formData, dentista_id: val})}
-                        placeholder="Seleccionar Profesional..."
-                        icon="medical_services"
-                        searchPlaceholder="Buscar dentista..."
-                      />
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Duración (minutos)</label>
+                          <select 
+                            value={formData.duracion_minutos}
+                            onChange={(e) => setFormData({...formData, duracion_minutos: parseInt(e.target.value)})}
+                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                          >
+                            {[15, 30, 45, 60, 90, 120].map(min => (
+                              <option key={min} value={min}>{min} minutos</option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <CustomSelect 
+                          label={t('appointments.modal.dentist')}
+                          options={dentists}
+                          value={formData.dentista_id}
+                          onChange={(val) => setFormData({...formData, dentista_id: val})}
+                          placeholder="Seleccionar Profesional..."
+                          icon="medical_services"
+                          searchPlaceholder="Buscar dentista..."
+                        />
+                      </div>
                     </div>
                   )}
 

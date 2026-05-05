@@ -14,6 +14,31 @@
       "scalable": "Escalabilidad Infinita",
       "scalable_desc": "Desde profesionales independientes hasta redes de múltiples clínicas."
     }
+    ,
+    "licenses": {
+      "title": "Planes y Licencias",
+      "subtitle": "Elige el plan que mejor se adapte a tu clínica. Transparencia, soporte y crecimiento.",
+      "loading": "Cargando planes...",
+      "per_month": "por mes",
+      "active_until": "Activo hasta",
+      "days_remaining": "{{count}} días restantes",
+      "no_plans": "No hay planes disponibles en este momento.",
+      "contact": "Contactar",
+      "get_started": "Comenzar ahora",
+      "contact_cta": "Contactar ventas",
+      "benefit_1": "Soporte 24/7",
+      "benefit_2": "Backups y seguridad",
+      "benefit_3": "Actualizaciones automáticas",
+      "remaining_days": "{{count}} d\u00edas restantes",
+      "remaining_weeks": "{{count}} semanas restantes",
+      "remaining_months": "{{count}} meses restantes",
+      "plans": {
+        "Básica": { "name": "Básica", "desc": "Ideal para consultorios individuales." },
+        "Estándar": { "name": "Estándar", "desc": "Para pequeñas clínicas." },
+        "Pro": { "name": "Pro", "desc": "Para clínicas medianas." },
+        "Pro+": { "name": "Pro+", "desc": "Solución empresarial." }
+      }
+    }
   },
   "login": {
     "welcome": "Bienvenido de Nuevo",
@@ -29,6 +54,21 @@
     "meets": "se encuentra con la",
     "serenity": "Serenidad.",
     "branding_desc": "Accede a tu santuario clínico. Gestiona el bienestar del paciente con una interfaz diseñada para la claridad y la excelencia administrativa."
+  },
+  "register": {
+    "title": "Crea tu Clínica",
+    "subtitle": "Únete a la nueva generación de gestión dental",
+    "step1": "Información de Usuario",
+    "step2": "Datos de la Clínica",
+    "step3": "Configuración Final",
+    "name": "Nombre Completo",
+    "clinic_name": "Nombre de la Clínica",
+    "phone": "Teléfono",
+    "create_account": "Crear Mi Espacio",
+    "already_have": "¿Ya tienes una cuenta?",
+    "login": "Inicia sesión",
+    "success": "¡Registro exitoso! Ya puedes ingresar.",
+    "error": "Error al registrarse. Intenta de nuevo."
   },
   "common": {
     "search": "Buscar...",
@@ -321,6 +361,12 @@
     "actions": {
       "discard": "Descartar",
       "save": "Aplicar Cambios"
+    }
+    ,
+    "license": {
+      "no_plan": "Sin plan",
+      "no_date": "Sin fecha de vencimiento",
+      "expired": "Licencia vencida"
     }
   }
 }
