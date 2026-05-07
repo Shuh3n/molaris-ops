@@ -252,9 +252,9 @@ const Landing = () => {
         )}
       </AnimatePresence>
 
-      <main className="relative z-10 pt-16 md:pt-20">
+      <main className="relative z-10 pt-12 md:pt-16">
         {/* Hero Section */}
-        <section className="px-6 py-12 lg:py-20 max-w-7xl mx-auto flex flex-col items-center text-center">
+        <section className="px-6 py-8 lg:py-16 max-w-7xl mx-auto flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -300,7 +300,7 @@ const Landing = () => {
           {/* Product Showcase */}
           <motion.div
             style={{ scale, opacity }}
-            className="mt-24 lg:mt-32 relative w-full group"
+            className="mt-16 lg:mt-24 relative w-full group"
           >
             <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full scale-75 group-hover:scale-90 transition-transform duration-1000" />
             <div className="relative bg-white p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] shadow-[0_64px_128px_-16px_rgba(0,0,0,0.1)] border border-white/50 overflow-hidden">
@@ -334,7 +334,7 @@ const Landing = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           id="features" 
-          className="py-32 lg:py-48 px-6 max-w-7xl mx-auto"
+          className="py-20 lg:py-32 px-6 max-w-7xl mx-auto"
         >
           <div className="flex flex-col md:flex-row justify-between items-end mb-20 md:mb-32 gap-8">
             <div className="max-w-xl space-y-6 text-left">
@@ -382,7 +382,7 @@ const Landing = () => {
           viewport={{ once: true }}
           transition={{ duration: 1 }}
           id="solutions" 
-          className="py-32 bg-slate-900 relative overflow-hidden"
+          className="py-20 bg-slate-900 relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-primary/10 blur-[150px] opacity-30" />
           <div className="max-w-7xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
@@ -432,7 +432,7 @@ const Landing = () => {
         </section>
 
         {/* Final CTA */}
-        <section className="py-32 px-6">
+        <section className="py-20 px-6">
           <motion.div 
             whileHover={{ scale: 0.99 }}
             className="max-w-7xl mx-auto p-12 lg:p-32 rounded-[4rem] bg-slate-900 text-white text-center relative overflow-hidden group shadow-[0_48px_96px_-24px_rgba(0,0,0,0.5)]"

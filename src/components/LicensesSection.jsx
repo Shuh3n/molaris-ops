@@ -38,7 +38,7 @@ const LicensesSection = () => {
   }, []);
 
   return (
-    <section className="py-24 md:py-32 relative overflow-hidden bg-slate-50/50">
+    <section className="py-16 md:py-24 relative overflow-hidden bg-slate-50/50">
       {/* Background accents */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
