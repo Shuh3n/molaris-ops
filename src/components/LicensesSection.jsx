@@ -144,15 +144,29 @@ const LicensesSection = () => {
 
                 <div className="flex-grow space-y-6 sm:space-y-8 lg:space-y-6 xl:space-y-10">
                   <div className="space-y-2">
-                    <h3 className={`text-2xl sm:text-3xl lg:text-xl xl:text-3xl font-black tracking-tight ${isRecommended ? 'text-primary' : 'text-slate-900'}`}>
-                      {t(`landing.licenses.demo_modal.plans.${l.nombre}`, l.nombre)}
-                    </h3>
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100/50 border border-slate-100/30">
-                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-                      <p className="text-[9px] xl:text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                        {l.max_dentistas} {l.max_dentistas === 1 ? t('landing.licenses.doctor') : t('landing.licenses.doctors')}
-                      </p>
-                    </div>
+                      <h3 className={`text-2xl sm:text-3xl lg:text-xl xl:text-3xl font-black tracking-tight ${isRecommended ? 'text-primary' : 'text-slate-900'}`}>
+                        {t(`landing.licenses.demo_modal.plans.${l.nombre}`, l.nombre)}
+                      </h3>
+
+                      {l.descripcion && (
+                        <p className="text-sm text-slate-500 mt-1">{l.descripcion}</p>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-3 mt-2">
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100/50 border border-slate-100/30 min-w-0">
+                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                          <p className="text-[9px] xl:text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[7rem] sm:max-w-[10rem]">
+                            {l.max_dentistas} {l.max_dentistas === 1 ? t('landing.licenses.doctor') : t('landing.licenses.doctors')}
+                          </p>
+                        </div>
+
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100/50 border border-slate-100/30 min-w-0">
+                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                          <p className="text-[9px] xl:text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[7rem] sm:max-w-[10rem]">
+                            {l.max_recepcionistas} {l.max_recepcionistas === 1 ? t('landing.licenses.receptionist') : t('landing.licenses.receptionists')}
+                          </p>
+                        </div>
+                      </div>
                   </div>
 
                   <div className="flex flex-col gap-1 min-h-[70px] lg:min-h-[60px] xl:min-h-[90px] justify-center">
