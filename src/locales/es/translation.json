@@ -400,6 +400,7 @@
     },
     "status": {
       "programada": "Programada",
+      "confirmada": "Confirmada",
       "completada": "Completada",
       "cancelada": "Cancelada",
       "noshow": "No se presentó"

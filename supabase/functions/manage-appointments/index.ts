@@ -24,7 +24,17 @@ serve(async (req) => {
     const type = url.searchParams.get('type')
     const check = url.searchParams.get('check')
 
-    // ── GET motivos ───────────────────────────────────────────────────────────
+    // ── Helper: obtener UUID de un estado por nombre ──────────────────────────
+    const getEstadoId = async (nombre: string): Promise<string | null> => {
+      const { data } = await supabaseClient
+        .from('estados_cita')
+        .select('id')
+        .eq('nombre', nombre)
+        .single()
+      return data?.id ?? null
+    }
+
+    // ── GET: motivos de consulta ──────────────────────────────────────────────
     if (method === 'GET' && type === 'motivos') {
       const { data, error } = await supabaseClient
         .from('motivos_consulta')
@@ -38,7 +48,20 @@ serve(async (req) => {
       })
     }
 
-    // ── GET check disponibilidad ──────────────────────────────────────────────
+    // ── GET: estados disponibles ──────────────────────────────────────────────
+    if (method === 'GET' && type === 'estados') {
+      const { data, error } = await supabaseClient
+        .from('estados_cita')
+        .select('id, nombre, descripcion')
+        .order('nombre', { ascending: true })
+      if (error) throw error
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
+    }
+
+    // ── GET: verificar disponibilidad ─────────────────────────────────────────
     if (method === 'GET' && check === 'true') {
       const dentista_id = url.searchParams.get('dentista_id')
       const fecha_hora = url.searchParams.get('fecha_hora')
@@ -52,19 +75,22 @@ serve(async (req) => {
         })
       }
 
-      const inicio = new Date(fecha_hora)
-      const fin = new Date(inicio.getTime() + duracion_minutos * 60000)
+      // Obtener el estado_id de "programada" para el filtro
+      const estadoProgramadaId = await getEstadoId('programada')
 
       let query = supabaseClient
         .from('citas')
         .select('id, fecha_hora, duracion_minutos')
         .eq('dentista_id', dentista_id)
-        .eq('estado', 'programada')
 
+      if (estadoProgramadaId) query = query.eq('estado_id', estadoProgramadaId)
       if (exclude_id) query = query.neq('id', exclude_id)
 
       const { data: citas, error } = await query
       if (error) throw error
+
+      const inicio = new Date(fecha_hora)
+      const fin = new Date(inicio.getTime() + duracion_minutos * 60000)
 
       const overlap = (citas || []).some(c => {
         const cInicio = new Date(c.fecha_hora)
@@ -78,7 +104,7 @@ serve(async (req) => {
       })
     }
 
-    // ── GET citas ─────────────────────────────────────────────────────────────
+    // ── GET: listar citas ─────────────────────────────────────────────────────
     if (method === 'GET') {
       const clinica_id = url.searchParams.get('clinica_id')
 
@@ -88,7 +114,6 @@ serve(async (req) => {
           id,
           fecha_hora,
           duracion_minutos,
-          estado,
           notas_medicas,
           creado_en,
           actualizado_en,
@@ -96,9 +121,11 @@ serve(async (req) => {
           paciente_id,
           dentista_id,
           motivo_id,
+          estado_id,
           pacientes (id, nombre, apellido, telefono),
           perfiles:dentista_id (nombre_completo),
-          motivos_consulta:motivo_id (id, nombre)
+          motivos_consulta:motivo_id (id, nombre),
+          estados_cita:estado_id (id, nombre)
         `)
         .order('fecha_hora', { ascending: true })
 
@@ -107,13 +134,19 @@ serve(async (req) => {
       const { data, error } = await query
       if (error) throw error
 
-      return new Response(JSON.stringify(data), {
+      // Aplanar el estado para facilitar el uso en frontend
+      const result = (data || []).map((c: any) => ({
+        ...c,
+        estado: c.estados_cita?.nombre ?? 'programada',
+      }))
+
+      return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    // ── POST: Crear cita ──────────────────────────────────────────────────────
+    // ── POST: crear cita ──────────────────────────────────────────────────────
     if (method === 'POST') {
       const body = await req.json()
 
@@ -124,47 +157,70 @@ serve(async (req) => {
         throw new Error('clinica_id es obligatorio')
       }
 
+      // Resolver estado_id — acepta estado_id directo o nombre de estado
+      let estado_id: string | null = body.estado_id ?? null
+      if (!estado_id) {
+        estado_id = await getEstadoId(body.estado ?? 'programada')
+      }
+      if (!estado_id) {
+        throw new Error('No se encontró el estado "programada" en la tabla estados_cita')
+      }
+
       const appointmentData = {
         clinica_id: body.clinica_id,
         paciente_id: body.paciente_id,
-        dentista_id: body.dentista_id || null,
+        dentista_id: body.dentista_id ?? null,
         fecha_hora: body.fecha_hora,
-        duracion_minutos: body.duracion_minutos || 30,
-        estado: 'programada',
-        motivo_id: body.motivo_id || null,
-        notas_medicas: body.notas_medicas || null,
+        duracion_minutos: body.duracion_minutos ?? 30,
+        estado_id,
+        motivo_id: body.motivo_id ?? null,
+        notas_medicas: body.notas_medicas ?? null,
       }
 
       const { data, error } = await supabaseClient
         .from('citas')
         .insert([appointmentData])
         .select(`
-          id, fecha_hora, duracion_minutos, estado, notas_medicas, clinica_id,
+          id, fecha_hora, duracion_minutos, notas_medicas, clinica_id,
           pacientes (id, nombre, apellido),
-          motivos_consulta:motivo_id (id, nombre)
+          motivos_consulta:motivo_id (id, nombre),
+          estados_cita:estado_id (id, nombre)
         `)
         .single()
 
       if (error) throw error
-      return new Response(JSON.stringify(data), {
+
+      return new Response(JSON.stringify({
+        ...data,
+        estado: (data as any).estados_cita?.nombre ?? 'programada',
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 201,
       })
     }
 
-    // ── PUT / PATCH: Actualizar cita ──────────────────────────────────────────
+    // ── PUT / PATCH: actualizar cita ──────────────────────────────────────────
     if (method === 'PUT' || method === 'PATCH') {
       if (!id) throw new Error('id es obligatorio para actualizar')
       const body = await req.json()
 
-      // Solo actualizamos los campos que lleguen
-      const allowed = ['fecha_hora', 'duracion_minutos', 'estado', 'notas_medicas',
-        'paciente_id', 'dentista_id', 'motivo_id']
       const updateData: Record<string, unknown> = {
         actualizado_en: new Date().toISOString(),
       }
-      for (const key of allowed) {
+
+      // Campos permitidos de actualización directa
+      const directFields = ['fecha_hora', 'duracion_minutos', 'notas_medicas',
+        'paciente_id', 'dentista_id', 'motivo_id']
+      for (const key of directFields) {
         if (key in body) updateData[key] = body[key]
+      }
+
+      // Resolver estado_id — acepta estado_id directo o nombre
+      if (body.estado_id) {
+        updateData.estado_id = body.estado_id
+      } else if (body.estado && typeof body.estado === 'string') {
+        const estadoId = await getEstadoId(body.estado)
+        if (estadoId) updateData.estado_id = estadoId
       }
 
       const { data, error } = await supabaseClient
@@ -172,14 +228,19 @@ serve(async (req) => {
         .update(updateData)
         .eq('id', id)
         .select(`
-          id, fecha_hora, duracion_minutos, estado, notas_medicas,
+          id, fecha_hora, duracion_minutos, notas_medicas,
           pacientes (id, nombre, apellido),
-          motivos_consulta:motivo_id (id, nombre)
+          motivos_consulta:motivo_id (id, nombre),
+          estados_cita:estado_id (id, nombre)
         `)
         .single()
 
       if (error) throw error
-      return new Response(JSON.stringify(data), {
+
+      return new Response(JSON.stringify({
+        ...data,
+        estado: (data as any).estados_cita?.nombre ?? 'programada',
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })

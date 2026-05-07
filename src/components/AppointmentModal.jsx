@@ -43,6 +43,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [clinicConfig, setClinicConfig] = useState(null);
+  const [clinicaId, setClinicaId] = useState(null);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -70,12 +71,14 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
         if (pError) console.error("Error fetching profile:", pError);
 
         if (myProfile?.clinica_id) {
+          setClinicaId(myProfile.clinica_id);
+
           const { data: clinic, error: cError } = await supabase
             .from('clinicas')
             .select('horario_apertura, horario_cierre')
             .eq('id', myProfile.clinica_id)
             .single();
-          
+
           if (clinic) setClinicConfig(clinic);
 
           const { data: roleData } = await supabase
@@ -90,7 +93,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
               .select('id, nombre:nombre_completo')
               .eq('rol_id', roleData.id)
               .eq('clinica_id', myProfile.clinica_id);
-            
+
             setDentists(profileData || []);
           }
         }
@@ -148,7 +151,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
 
       setIsChecking(true);
       setAvailabilityError('');
-      
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const fechaHora = new Date(`${formData.fecha}T${formData.hora}`).toISOString();
@@ -191,7 +194,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
       const selectedDate = new Date(formData.fecha + 'T00:00:00');
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       if (selectedDate < today) {
         setError(t('appointments.modal.past_date_error'));
         return false;
@@ -212,7 +215,9 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
     try {
       const fechaHora = new Date(`${formData.fecha}T${formData.hora}`).toISOString();
       const { fecha, hora, costo, ...rest } = formData;
-      await onSave({ ...rest, fecha_hora: fechaHora });
+      const payload = { ...rest, fecha_hora: fechaHora };
+      if (clinicaId && !appointment) payload.clinica_id = clinicaId;
+      await onSave(payload);
       onClose();
     } catch (error) {
       console.error("Error saving appointment:", error);
@@ -234,7 +239,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="bg-white w-full max-w-2xl rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] md:min-h-[600px]">
-            
+
             <div className="px-6 md:px-10 pt-8 md:pt-10 pb-4 md:pb-6 shrink-0">
               <div className="flex justify-between items-center mb-4 md:mb-6">
                 <div className="text-left">
@@ -263,7 +268,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                     <div className="space-y-6 md:space-y-8 text-left pb-4">
                       <div className="space-y-4">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('appointments.modal.patient_search')}</label>
-                        <PatientSearch selectedPatient={selectedPatient} onSelect={(p) => { setSelectedPatient(p); setFormData({...formData, paciente_id: p.id}); }} />
+                        <PatientSearch selectedPatient={selectedPatient} onSelect={(p) => { setSelectedPatient(p); setFormData({ ...formData, paciente_id: p.id }); }} />
                       </div>
                       <div className="p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] bg-slate-50 border border-slate-100 flex flex-col items-center text-center gap-4">
                         <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center">
@@ -283,9 +288,9 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                           {error || availabilityError}
                         </p>
                       )}
-                      
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                        <CustomDatePicker 
+                        <CustomDatePicker
                           label={t('appointments.modal.date')}
                           value={formData.fecha}
                           onChange={(val) => {
@@ -298,10 +303,10 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                           minDate={new Date()}
                         />
                         <div className="relative">
-                          <CustomTimePicker 
+                          <CustomTimePicker
                             label={t('appointments.modal.time')}
                             value={formData.hora}
-                            onChange={(val) => setFormData({...formData, hora: val})}
+                            onChange={(val) => setFormData({ ...formData, hora: val })}
                             selectedDate={formData.fecha}
                             clinicHours={{
                               apertura: clinicConfig?.horario_apertura,
@@ -319,9 +324,9 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                         <div className="space-y-3">
                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Duración (minutos)</label>
-                          <select 
+                          <select
                             value={formData.duracion_minutos}
-                            onChange={(e) => setFormData({...formData, duracion_minutos: parseInt(e.target.value)})}
+                            onChange={(e) => setFormData({ ...formData, duracion_minutos: parseInt(e.target.value) })}
                             className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
                           >
                             {[15, 30, 45, 60, 90, 120].map(min => (
@@ -329,12 +334,12 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                             ))}
                           </select>
                         </div>
-                        
-                        <CustomSelect 
+
+                        <CustomSelect
                           label={t('appointments.modal.dentist')}
                           options={dentists}
                           value={formData.dentista_id}
-                          onChange={(val) => setFormData({...formData, dentista_id: val})}
+                          onChange={(val) => setFormData({ ...formData, dentista_id: val })}
                           placeholder="Seleccionar Profesional..."
                           icon="medical_services"
                           searchPlaceholder="Buscar dentista..."
@@ -346,7 +351,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                   {step === 3 && (
                     <div className="space-y-6 text-left pb-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                        <CustomSelect 
+                        <CustomSelect
                           label={t('appointments.modal.reason')}
                           options={motivos}
                           value={formData.motivo_id}
@@ -354,7 +359,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                             const motivoSeleccionado = motivos.find(m => m.id === val);
                             const nuevoCosto = motivoSeleccionado ? motivoSeleccionado.costo_base : formData.costo;
                             setFormData({
-                              ...formData, 
+                              ...formData,
                               motivo_id: val,
                               costo: nuevoCosto
                             });
@@ -369,9 +374,9 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Costo de la Cita ($)</label>
                           <div className="relative">
                             <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                            <input 
-                              type="text" 
-                              value={displayCosto} 
+                            <input
+                              type="text"
+                              value={displayCosto}
                               onFocus={(e) => {
                                 if (parseMoney(e.target.value) === 0) setDisplayCosto('');
                               }}
@@ -394,7 +399,7 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
 
                       <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('appointments.modal.notes')}</label>
-                        <textarea value={formData.notas_medicas} onChange={(e) => setFormData({...formData, notas_medicas: e.target.value})} rows="3" placeholder="Algún detalle relevante..."
+                        <textarea value={formData.notas_medicas} onChange={(e) => setFormData({ ...formData, notas_medicas: e.target.value })} rows="3" placeholder="Algún detalle relevante..."
                           className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none" />
                       </div>
                     </div>
@@ -405,18 +410,18 @@ const AppointmentModal = ({ isOpen, onClose, onSave, appointment }) => {
 
             <div className="px-6 md:px-10 py-6 md:py-8 shrink-0 flex justify-between gap-4 border-t border-slate-50 bg-white">
               {step > 1 ? (
-                <button onClick={() => {setDirection(-1); setStep(s => s-1);}} className="px-4 md:px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2">
+                <button onClick={() => { setDirection(-1); setStep(s => s - 1); }} className="px-4 md:px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2">
                   <span className="material-symbols-outlined text-lg">west</span> <span className="hidden sm:inline">{t('common.actions.back')}</span>
                 </button>
               ) : <div />}
-              
+
               {step < 3 ? (
-                <button onClick={() => { if(validateStep(step)) { setDirection(1); setStep(s => s+1); } }} disabled={(step === 1 && !formData.paciente_id) || isChecking || !!availabilityError} 
+                <button onClick={() => { if (validateStep(step)) { setDirection(1); setStep(s => s + 1); } }} disabled={(step === 1 && !formData.paciente_id) || isChecking || !!availabilityError}
                   className="bg-primary text-white px-8 md:px-10 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2">
                   {t('common.actions.next')} <span className="material-symbols-outlined text-lg">east</span>
                 </button>
               ) : (
-                <button onClick={handleSubmit} disabled={isSubmitting || !formData.motivo_id || isChecking || !!availabilityError} 
+                <button onClick={handleSubmit} disabled={isSubmitting || !formData.motivo_id || isChecking || !!availabilityError}
                   className="bg-[#10B981] text-white px-10 md:px-12 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] shadow-xl shadow-[#10B981]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
                   {isSubmitting && <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full" />}
                   {t('appointments.modal.save')} <span className="material-symbols-outlined text-lg">task_alt</span>
