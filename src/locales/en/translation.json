@@ -105,6 +105,20 @@
       "benefit_1": "24/7 Support",
       "benefit_2": "Backups & Security",
       "benefit_3": "Free Updates",
+      "problems": {
+        "title": "Common problems",
+        "item1": "High no-show rates",
+        "item2": "Manual appointment management",
+        "item3": "Double bookings & errors",
+        "item4": "Fragmented billing"
+      },
+      "solutions": {
+        "title": "Molaris OPS Solutions",
+        "item1": "Automated reminders",
+        "item2": "Smart scheduling",
+        "item3": "Centralized billing",
+        "item4": "Automated backups"
+      },
       "demo_modal": {
         "title": "INTERACTIVE DEMO",
         "welcome": "Hello, {{name}} 👋",

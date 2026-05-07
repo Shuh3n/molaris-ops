@@ -112,6 +112,20 @@
       "benefit_1": "Soporte 24/7",
       "benefit_2": "Copias de seguridad",
       "benefit_3": "Actualizaciones Gratis",
+      "problems": {
+        "title": "Problemas comunes",
+        "item1": "Altas tasas de ausentismo",
+        "item2": "Gestión manual de citas",
+        "item3": "Doble reserva y errores",
+        "item4": "Facturación fragmentada"
+      },
+      "solutions": {
+        "title": "Soluciones Molaris OPS",
+        "item1": "Recordatorios automáticos",
+        "item2": "Agenda inteligente",
+        "item3": "Facturación centralizada",
+        "item4": "Backups automáticos"
+      },
       "demo_modal": {
         "title": "DEMO INTERACTIVA",
         "welcome": "Hola, {{name}} 👋",

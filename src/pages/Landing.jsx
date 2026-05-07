@@ -33,6 +33,55 @@ const Icons = {
   )
 };
 
+const ProblemsSolutionsMarquee = ({ t }) => {
+  const problems = [
+    t('landing.licenses.problems.item1'),
+    t('landing.licenses.problems.item2'),
+    t('landing.licenses.problems.item3'),
+    t('landing.licenses.problems.item4'),
+  ];
+  const solutions = [
+    t('landing.licenses.solutions.item1'),
+    t('landing.licenses.solutions.item2'),
+    t('landing.licenses.solutions.item3'),
+    t('landing.licenses.solutions.item4'),
+  ];
+
+  return (
+    <section className="py-12 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-6">
+          <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">{t('landing.licenses.problems.title')}</h3>
+        </div>
+
+        <div className="overflow-hidden">
+          <div className="flex animate-marquee-left">
+            {problems.concat(problems).map((p, i) => (
+              <span key={`p-${i}`} className="mx-10 text-lg sm:text-xl font-bold text-slate-900 whitespace-nowrap">{p}</span>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6 overflow-hidden">
+          <div className="flex animate-marquee-right">
+            {solutions.concat(solutions).map((s, i) => (
+              <span key={`s-${i}`} className="mx-10 text-lg sm:text-xl font-bold text-slate-900 whitespace-nowrap">{s}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes marquee-left { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
+        @keyframes marquee-right { 0% { transform: translateX(-50%); } 100% { transform: translateX(0%); } }
+        .animate-marquee-left { animation: marquee-left 20s linear infinite; will-change: transform; }
+        .animate-marquee-right { animation: marquee-right 20s linear infinite; will-change: transform; }
+        @media (prefers-reduced-motion: reduce) { .animate-marquee-left, .animate-marquee-right { animation: none; } }
+      `}</style>
+    </section>
+  );
+};
+
 const Landing = () => {
   const { t } = useTranslation();
   const [showDemo, setShowDemo] = useState(false);
@@ -323,6 +372,9 @@ const Landing = () => {
             />
           </div>
         </motion.section>
+
+        {/* Problems & Solutions animated rows (left / right) */}
+        <ProblemsSolutionsMarquee t={t} />
 
         <motion.section 
           initial={{ opacity: 0 }}
