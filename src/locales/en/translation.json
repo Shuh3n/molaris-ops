@@ -68,8 +68,7 @@
       "secure_desc": "Bank-grade encryption for all medical records.",
       "scalable": "Infinite Scalability",
       "scalable_desc": "From solo practitioners to multi-clinic networks."
-    }
-    ,
+    },
     "licenses": {
       "title_1": "Planes a tu",
       "title_2": "Medida",
@@ -139,7 +138,6 @@
         }
       }
     }
-
   },
   "dentist": {
     "workstation": "Workstation",
@@ -260,7 +258,9 @@
       "next": "Next",
       "back": "Back",
       "confirm": "Confirm"
-    }
+    },
+    "menu": "Menu",
+    "menu_title": "Menu"
   },
   "dashboard": {
     "welcome": "Morning, Dr. Smith",
@@ -509,8 +509,7 @@
     "actions": {
       "discard": "Discard",
       "save": "Apply Changes"
-    }
-    ,
+    },
     "license": {
       "no_plan": "No plan",
       "no_date": "No expiration date set",

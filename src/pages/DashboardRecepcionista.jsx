@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,8 @@ import { supabase } from '../lib/supabase';
 import LanguageToggle from '../components/LanguageToggle';
 import AppointmentModal from '../components/AppointmentModal';
 import { useToast } from '../components/ToastContext';
+
+const Motion = motion;
 
 const DashboardRecepcionista = () => {
   const navigate = useNavigate();
@@ -17,13 +19,23 @@ const DashboardRecepcionista = () => {
   const [loading, setLoading] = useState(true);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
   const [logs, setLogs] = useState([]);
   const [hasNewLogs, setHasNewLogs] = useState(false);
   const { addToast } = useToast();
   const hoverTimerRef = useRef(null);
   const notificationsRef = useRef(null);
 
-  const fetchLogs = async (clinicaId) => {
+  const receptionistNavItems = [
+    { to: '/dashboard/recepcionista', icon: 'dashboard', label: t('common.dashboard'), end: true },
+    { to: '/dashboard/recepcionista/citas', icon: 'calendar_today', label: t('common.appointments') },
+    { to: '/dashboard/recepcionista/facturacion', icon: 'payments', label: t('common.billing') },
+    { to: '/dashboard/recepcionista/pacientes', icon: 'group', label: t('common.patients') },
+    { to: '/dashboard/recepcionista/gestion', icon: 'manage_accounts', label: t('common.settings') },
+  ];
+
+  const fetchLogs = useCallback(async (clinicaId) => {
     try {
       const { data, error } = await supabase
         .from('logs_actividad')
@@ -34,27 +46,25 @@ const DashboardRecepcionista = () => {
         .eq('clinica_id', clinicaId)
         .order('creado_en', { ascending: false })
         .limit(10);
-      
+
       if (error) throw error;
-      
-      // Check if there are new logs compared to last viewed or just stored
+
       if (logs.length > 0 && data.length > 0 && data[0].id !== logs[0].id) {
         setHasNewLogs(true);
       } else if (logs.length === 0 && data.length > 0) {
-        // Initial fetch with data shows badge
         setHasNewLogs(true);
       }
-      
+
       setLogs(data);
     } catch (error) {
-      console.error("Error fetching logs:", error);
+      console.error('Error fetching logs:', error);
     }
-  };
+  }, [logs]);
 
   const handleOpenNotifications = () => {
     setIsNotificationsOpen(!isNotificationsOpen);
     if (!isNotificationsOpen) {
-      setHasNewLogs(false); // Clear badge when opening
+      setHasNewLogs(false);
     }
   };
 
@@ -62,42 +72,56 @@ const DashboardRecepcionista = () => {
     if (userProfile?.clinica_id) {
       fetchLogs(userProfile.clinica_id);
     }
-  }, [userProfile]);
+  }, [userProfile, fetchLogs]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+
+      if (!mobile) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSaveAppointment = async (formData) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-appointments`;
-      
+
       const appointmentData = {
         ...formData,
-        clinica_id: userProfile.clinica_id
+        clinica_id: userProfile.clinica_id,
       };
 
       const response = await fetch(FUNCTION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${session?.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify(appointmentData)
+        body: JSON.stringify(appointmentData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to save appointment');
       }
-      
+
       addToast('Cita programada exitosamente', 'success');
-      
+
       if (location.pathname.includes('/citas')) {
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       }
     } catch (error) {
-      console.error("Error saving appointment:", error);
+      console.error('Error saving appointment:', error);
       addToast('Error al guardar la cita', 'error');
       throw error;
     }
@@ -106,7 +130,7 @@ const DashboardRecepcionista = () => {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         navigate('/login');
         return;
@@ -125,7 +149,7 @@ const DashboardRecepcionista = () => {
         .single();
 
       if (error || profile?.roles?.nombre !== 'RECEPCIONISTA') {
-        console.error("Acceso denegado o error de perfil", error);
+        console.error('Acceso denegado o error de perfil', error);
         navigate('/login');
         return;
       }
@@ -143,7 +167,8 @@ const DashboardRecepcionista = () => {
   };
 
   const handleMouseEnter = () => {
-    if (window.innerWidth <= 1024) return;
+    if (isMobile) return;
+
     hoverTimerRef.current = setTimeout(() => {
       setIsHovered(true);
     }, 600);
@@ -168,7 +193,7 @@ const DashboardRecepcionista = () => {
     if (isNotificationsOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -177,9 +202,9 @@ const DashboardRecepcionista = () => {
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-50">
-        <motion.div 
-          animate={{ rotate: 360 }} 
-          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+        <Motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
           className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"
         />
       </div>
@@ -189,90 +214,74 @@ const DashboardRecepcionista = () => {
   return (
     <div className="bg-[#F8FAFC] text-slate-900 selection:bg-primary/20 h-screen flex overflow-hidden">
       <AnimatePresence>
-        {(window.innerWidth > 1024 || isExpanded) && (
-          <>
-            {isExpanded && window.innerWidth <= 1024 && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => { setIsPinned(false); setIsHovered(false); }}
-                className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[45] lg:hidden"
-              />
-            )}
-            <motion.aside 
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              initial={window.innerWidth <= 1024 ? { x: -280 } : false}
-              animate={{ 
-                width: isExpanded ? 280 : (window.innerWidth <= 1024 ? 0 : 80),
-                x: (!isExpanded && window.innerWidth <= 1024) ? -280 : 0
-              }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className={`h-screen flex-shrink-0 bg-white/80 backdrop-blur-xl border-r border-slate-100 shadow-[20px_0px_40px_rgba(0,97,164,0.03)] flex flex-col z-50 overflow-hidden group ${window.innerWidth <= 1024 ? 'fixed left-0 top-0' : 'relative'}`}
-            >
-              <div className={`h-20 flex items-center shrink-0 border-b border-transparent relative transition-all duration-300 ${isExpanded ? 'px-5 justify-between' : 'justify-center px-0'}`}>
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-10 h-10 rounded-xl editorial-gradient flex items-center justify-center shadow-lg shrink-0">
-                    <img src="/favicon.svg" alt="Molaris logo" className="w-7 h-7" />
-                  </div>
-                  <AnimatePresence mode="wait">
-                    {isExpanded && (
-                      <motion.div key="logo-text" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col overflow-hidden whitespace-nowrap">
-                        <h1 className="text-lg font-black bg-gradient-to-br from-blue-700 to-blue-400 bg-clip-text text-transparent">MOLARIS OPS</h1>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+        {!isMobile && (
+          <Motion.aside
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            initial={false}
+            animate={{ width: isExpanded ? 280 : 80 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="h-screen flex-shrink-0 bg-white/80 backdrop-blur-xl border-r border-slate-100 shadow-[20px_0px_40px_rgba(0,97,164,0.03)] flex flex-col z-50 overflow-hidden group relative"
+          >
+            <div className={`h-20 flex items-center shrink-0 border-b border-transparent relative transition-all duration-300 ${isExpanded ? 'px-5 justify-between' : 'justify-center px-0'}`}>
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="w-10 h-10 rounded-xl editorial-gradient flex items-center justify-center shadow-lg shrink-0">
+                  <img src="/favicon.svg" alt="Molaris logo" className="w-7 h-7" />
                 </div>
-                <button onClick={() => setIsPinned(!isPinned)} className={`w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:bg-primary/5 rounded-xl z-10 shrink-0 ${!isExpanded ? 'absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 bg-white/60 backdrop-blur-sm' : ''}`}>
-                  <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: isPinned ? "'FILL' 1" : "''" }}>
-                    {isExpanded ? 'push_pin' : 'menu'}
-                  </span>
-                </button>
-              </div>
-
-              <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto no-scrollbar">
-                <NavItem to="/dashboard/recepcionista" end icon="dashboard" label={t('common.dashboard')} expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/citas" icon="calendar_today" label={t('common.appointments')} expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/facturacion" icon="payments" label={t('common.billing')} expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/pacientes" icon="group" label={t('common.patients')} expanded={isExpanded} />
-                <NavItem to="/dashboard/recepcionista/gestion" icon="manage_accounts" label={t('common.settings')} expanded={isExpanded} />
-              </nav>
-
-              <div className="mt-auto p-3 border-t border-slate-100">
-                <motion.div className={`flex items-center ${isExpanded ? 'gap-3 px-4' : 'justify-center'} py-3 text-slate-500 rounded-xl cursor-pointer hover:bg-slate-50 transition-all duration-300 font-semibold text-sm overflow-hidden`}>
-                  <span className="material-symbols-outlined shrink-0">account_circle</span>
+                <AnimatePresence mode="wait">
                   {isExpanded && (
-                    <div className="flex flex-col overflow-hidden whitespace-nowrap">
-                      <span className="truncate font-bold text-slate-900">{userProfile?.nombre_completo || 'Usuario'}</span>
-                      <span className="text-[10px] text-slate-400 font-black uppercase truncate">{t('settings.access.front')}</span>
-                    </div>
+                    <Motion.div key="logo-text" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col overflow-hidden whitespace-nowrap">
+                      <h1 className="text-lg font-black bg-gradient-to-br from-blue-700 to-blue-400 bg-clip-text text-transparent">MOLARIS OPS</h1>
+                    </Motion.div>
                   )}
-                </motion.div>
-                <button onClick={handleLogout} className={`w-full flex items-center ${isExpanded ? 'gap-3 px-4' : 'justify-center'} py-3 text-red-500 hover:bg-red-50 transition-all duration-300 rounded-xl font-bold text-sm group cursor-pointer overflow-hidden`}>
-                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform shrink-0">logout</span>
-                  {isExpanded && <span className="whitespace-nowrap">{t('common.logout')}</span>}
-                </button>
+                </AnimatePresence>
               </div>
-            </motion.aside>
-          </>
+              <button onClick={() => setIsPinned(!isPinned)} className={`w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:bg-primary/5 rounded-xl z-10 shrink-0 ${!isExpanded ? 'absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 bg-white/60 backdrop-blur-sm' : ''}`}>
+                <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: isPinned ? "'FILL' 1" : "''" }}>
+                  {isExpanded ? 'push_pin' : 'menu'}
+                </span>
+              </button>
+            </div>
+
+            <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto no-scrollbar">
+              {receptionistNavItems.map((item) => (
+                <NavItem key={item.to} {...item} expanded={isExpanded} />
+              ))}
+            </nav>
+
+            <div className="mt-auto p-3 border-t border-slate-100">
+              <Motion.div className={`flex items-center ${isExpanded ? 'gap-3 px-4' : 'justify-center'} py-3 text-slate-500 rounded-xl cursor-pointer hover:bg-slate-50 transition-all duration-300 font-semibold text-sm overflow-hidden`}>
+                <span className="material-symbols-outlined shrink-0">account_circle</span>
+                {isExpanded && (
+                  <div className="flex flex-col overflow-hidden whitespace-nowrap">
+                    <span className="truncate font-bold text-slate-900">{userProfile?.nombre_completo || 'Usuario'}</span>
+                    <span className="text-[10px] text-slate-400 font-black uppercase truncate">{t('settings.access.front')}</span>
+                  </div>
+                )}
+              </Motion.div>
+              <button onClick={handleLogout} className={`w-full flex items-center ${isExpanded ? 'gap-3 px-4' : 'justify-center'} py-3 text-red-500 hover:bg-red-50 transition-all duration-300 rounded-xl font-bold text-sm group cursor-pointer overflow-hidden`}>
+                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform shrink-0">logout</span>
+                {isExpanded && <span className="whitespace-nowrap">{t('common.logout')}</span>}
+              </button>
+            </div>
+          </Motion.aside>
         )}
       </AnimatePresence>
 
       <main className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC]">
-        <header className="h-20 shrink-0 z-40 bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 lg:px-10 border-b border-slate-100">
-          <div className="flex items-center flex-1 max-w-xl">
+        <header className="h-20 shrink-0 z-40 bg-white/80 backdrop-blur-xl flex items-center justify-between px-4 sm:px-6 lg:px-10 border-b border-slate-100 gap-4">
+          <div className="flex items-center flex-1 max-w-xl min-w-0">
             <div className="relative w-full group">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
               <input className="w-full pl-12 pr-6 py-3 bg-slate-100/50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-slate-400 font-medium" placeholder={t('common.search')} type="text" />
             </div>
           </div>
-          <div className="flex items-center gap-4 lg:gap-8 ml-4">
+          <div className="flex items-center gap-2 sm:gap-4 lg:gap-8">
             <div className="hidden md:flex items-center gap-6 pr-6 border-r border-slate-100 shrink-0">
               <LanguageToggle />
             </div>
             <div className="flex items-center gap-2 lg:gap-4 shrink-0 relative" ref={notificationsRef}>
-              <button 
+              <button
                 onClick={handleOpenNotifications}
                 className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all relative ${isNotificationsOpen ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-primary hover:bg-primary/5'}`}
               >
@@ -284,7 +293,7 @@ const DashboardRecepcionista = () => {
 
               <AnimatePresence>
                 {isNotificationsOpen && (
-                  <motion.div 
+                  <Motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -315,11 +324,9 @@ const DashboardRecepcionista = () => {
                               </div>
                               <div className="flex-1 min-w-0 text-left">
                                 <p className="text-xs font-bold text-slate-900 leading-tight">
-                                  {log.perfiles?.nombre_completo || 'Sistema'} 
+                                  {log.perfiles?.nombre_completo || 'Sistema'}
                                   <span className="font-medium text-slate-500 ml-1">
-                                    {log.accion === 'creacion' ? 'creó' : 
-                                     log.accion === 'cambio_estado' ? 'actualizó el estado de' : 
-                                     'actualizó'} una {log.entidad_tipo === 'citas' ? 'cita' : 'paciente'}
+                                    {log.accion === 'creacion' ? 'creó' : log.accion === 'cambio_estado' ? 'actualizó el estado de' : 'actualizó'} una {log.entidad_tipo === 'citas' ? 'cita' : 'paciente'}
                                   </span>
                                 </p>
                                 {log.detalles?.estado_nuevo && (
@@ -341,11 +348,11 @@ const DashboardRecepcionista = () => {
                         Ver todo el historial
                       </button>
                     </div>
-                  </motion.div>
+                  </Motion.div>
                 )}
               </AnimatePresence>
             </div>
-            <button onClick={() => setIsAppointmentModalOpen(true)} className="bg-primary text-white px-4 lg:px-6 py-3 rounded-2xl font-black text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+            <button onClick={() => setIsAppointmentModalOpen(true)} className="bg-primary text-white px-3 sm:px-4 lg:px-6 py-3 rounded-2xl font-black text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
               <span className="material-symbols-outlined text-lg">add_circle</span>
               <span className="hidden sm:inline uppercase tracking-widest text-xs">{t('appointments.new_appointment')}</span>
             </button>
@@ -354,16 +361,70 @@ const DashboardRecepcionista = () => {
 
         <div className="flex-1 overflow-hidden relative">
           <div className="absolute inset-0 scroll-container">
-            <motion.div key={location.pathname} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.3 }} className="p-6 lg:p-10">
+            <Motion.div key={location.pathname} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.3 }} className="p-4 pb-28 sm:p-6 lg:p-10 lg:pb-10">
               {location.pathname === '/dashboard/recepcionista' ? <DashboardHome userProfile={userProfile} t={t} /> : <Outlet />}
-            </motion.div>
+            </Motion.div>
           </div>
         </div>
       </main>
 
-      <AppointmentModal 
-        isOpen={isAppointmentModalOpen} 
-        onClose={() => setIsAppointmentModalOpen(false)} 
+      <AnimatePresence>
+        {isMobile && isMobileMenuOpen && (
+          <>
+            <Motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[55]"
+            />
+            <Motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] shadow-[0_-20px_60px_rgba(0,0,0,0.12)] z-[60] px-5 pt-5 pb-8"
+            >
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6" />
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900">{t('common.menu_title')}</h2>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="w-10 h-10 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center">
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              <nav className="grid grid-cols-2 gap-3">
+                {receptionistNavItems.map((item) => (
+                  <MobileMenuItem key={item.to} {...item} onClick={() => setIsMobileMenuOpen(false)} />
+                ))}
+                <button onClick={handleLogout} className="flex flex-col items-center justify-center gap-2 rounded-[1.5rem] bg-red-50 text-red-500 p-5 font-black text-[11px] uppercase tracking-widest">
+                  <span className="material-symbols-outlined text-3xl">logout</span>
+                  <span>{t('common.logout')}</span>
+                </button>
+              </nav>
+            </Motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 z-[50] border-t border-slate-200 bg-white/95 backdrop-blur-xl px-3 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)]">
+          <div className="grid grid-cols-4 gap-1">
+            <BottomNavItem to="/dashboard/recepcionista" icon="dashboard" label={t('common.dashboard')} end />
+            <BottomNavItem to="/dashboard/recepcionista/citas" icon="calendar_month" label={t('common.appointments')} />
+            <BottomNavItem to="/dashboard/recepcionista/pacientes" icon="group" label={t('common.patients')} />
+            <button onClick={() => setIsMobileMenuOpen((current) => !current)} className={`flex flex-col items-center gap-1 rounded-2xl px-2 py-2 transition-all ${isMobileMenuOpen ? 'text-primary' : 'text-slate-400'}`}>
+              <span className={`material-symbols-outlined text-[26px] ${isMobileMenuOpen ? 'rounded-2xl bg-primary/10 p-2' : ''}`}>
+                {isMobileMenuOpen ? 'close' : 'menu'}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-widest">{t('common.menu')}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <AppointmentModal
+        isOpen={isAppointmentModalOpen}
+        onClose={() => setIsAppointmentModalOpen(false)}
         onSave={handleSaveAppointment}
       />
     </div>
@@ -387,7 +448,6 @@ const DashboardHome = ({ userProfile, t }) => {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        // Stats: Today's appointments
         const { count: todayCount } = await supabase
           .from('citas')
           .select('*, estados_cita!inner(nombre)', { count: 'exact', head: true })
@@ -396,7 +456,6 @@ const DashboardHome = ({ userProfile, t }) => {
           .lt('fecha_hora', tomorrow.toISOString())
           .neq('estados_cita.nombre', 'cancelada');
 
-        // Stats: Pending appointments
         const { count: pendingCount } = await supabase
           .from('citas')
           .select('*, estados_cita!inner(nombre)', { count: 'exact', head: true })
@@ -405,7 +464,6 @@ const DashboardHome = ({ userProfile, t }) => {
 
         setStats({ today: todayCount || 0, pending: pendingCount || 0 });
 
-        // Upcoming schedule
         const { data: upcoming } = await supabase
           .from('citas')
           .select(`
@@ -420,15 +478,14 @@ const DashboardHome = ({ userProfile, t }) => {
           .order('fecha_hora', { ascending: true })
           .limit(5);
 
-        // Map state name for component consumption
-        const mappedUpcoming = upcoming?.map(apt => ({
+        const mappedUpcoming = upcoming?.map((apt) => ({
           ...apt,
-          estado: apt.estados_cita?.nombre
+          estado: apt.estados_cita?.nombre,
         })) || [];
 
         setUpcomingAppointments(mappedUpcoming);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
@@ -436,7 +493,7 @@ const DashboardHome = ({ userProfile, t }) => {
 
     fetchDashboardData();
   }, [userProfile]);
-  
+
   return (
     <div>
       <div className="mb-10 text-left">
@@ -460,11 +517,11 @@ const DashboardHome = ({ userProfile, t }) => {
               </div>
               <span className="material-symbols-outlined text-primary bg-white p-2 rounded-xl shadow-sm border border-slate-50">calendar_view_week</span>
             </div>
-            
+
             <div className="min-h-[400px] bg-white relative overflow-hidden">
               {loading ? (
                 <div className="h-full flex flex-col items-center justify-center gap-4 text-slate-300 py-20">
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
+                  <Motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
                   <p className="italic text-sm font-medium">Cargando horario dinámico...</p>
                 </div>
               ) : upcomingAppointments.length === 0 ? (
@@ -492,7 +549,7 @@ const DashboardHome = ({ userProfile, t }) => {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                          apt.estado === 'programada' ? 'bg-blue-50 text-blue-600' : 
+                          apt.estado === 'programada' ? 'bg-blue-50 text-blue-600' :
                           apt.estado === 'completada' ? 'bg-green-50 text-green-600' : 'bg-slate-50 text-slate-500'
                         }`}>
                           {t(`appointments.status.${apt.estado}`)}
@@ -539,12 +596,39 @@ const DashboardHome = ({ userProfile, t }) => {
 };
 
 const NavItem = ({ to, icon, label, expanded = false, end = false }) => (
-  <motion.div whileHover={{ x: expanded ? 5 : 0 }} whileActive={{ scale: 0.98 }}>
+  <Motion.div whileHover={{ x: expanded ? 5 : 0 }} whileActive={{ scale: 0.98 }}>
     <NavLink to={to} end={end} className={({ isActive }) => `flex items-center ${expanded ? 'gap-4 px-4' : 'justify-center'} py-3.5 transition-all rounded-2xl font-bold text-sm ${isActive ? 'text-primary bg-primary/5 shadow-[0_4px_20px_rgba(0,97,164,0.08)] border border-primary/5' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'} group whitespace-nowrap overflow-hidden`}>
-      <span className={`material-symbols-outlined transition-transform text-[22px] shrink-0`}>{icon}</span>
+      <span className="material-symbols-outlined transition-transform text-[22px] shrink-0">{icon}</span>
       {expanded && <span className="truncate uppercase tracking-widest text-[11px] font-black">{label}</span>}
     </NavLink>
-  </motion.div>
+  </Motion.div>
+);
+
+const MobileMenuItem = ({ to, icon, label, onClick, end = false }) => (
+  <NavLink
+    to={to}
+    end={end}
+    onClick={onClick}
+    className={({ isActive }) => `flex flex-col items-center justify-center gap-2 rounded-[1.5rem] p-5 text-center transition-all ${isActive ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-500'}`}
+  >
+    <span className="material-symbols-outlined text-3xl">{icon}</span>
+    <span className="text-[11px] font-black uppercase tracking-widest">{label}</span>
+  </NavLink>
+);
+
+const BottomNavItem = ({ to, icon, label, end = false }) => (
+  <NavLink
+    to={to}
+    end={end}
+    className={({ isActive }) => `flex flex-col items-center gap-1 rounded-2xl px-2 py-2 transition-all ${isActive ? 'text-primary' : 'text-slate-400'}`}
+  >
+    {({ isActive }) => (
+      <>
+        <span className={`material-symbols-outlined text-[26px] ${isActive ? 'rounded-2xl bg-primary/10 p-2' : ''}`}>{icon}</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-center">{label}</span>
+      </>
+    )}
+  </NavLink>
 );
 
 export default DashboardRecepcionista;

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import ConfirmModal from '../components/ConfirmModal';
+import { useToast } from '../components/ToastContext';
 
 const Settings = () => {
   const { t } = useTranslation();
+  const { addToast } = useToast();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -14,10 +18,21 @@ const Settings = () => {
   const [team, setTeam] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
   const [roles, setRoles] = useState([]);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (location.pathname.includes('/equipo')) {
+      setActiveTab('team');
+    } else if (location.pathname.includes('/gestion')) {
+      setActiveTab('clinic');
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (clinicData && originalClinicData) {
@@ -34,9 +49,11 @@ const Settings = () => {
 
       const { data: profile } = await supabase
         .from('perfiles')
-        .select('clinica_id')
+        .select('clinica_id, roles(nombre)')
         .eq('id', session.user.id)
         .single();
+
+      setUserRole(profile?.roles?.nombre);
 
       if (profile?.clinica_id) {
         const { data: clinic, error: clinicError } = await supabase
@@ -117,10 +134,10 @@ const Settings = () => {
 
       setOriginalClinicData(clinicData);
       setIsDirty(false);
-      alert('Cambios guardados correctamente');
+      addToast('Cambios guardados correctamente', 'success');
     } catch (error) {
       console.error('Error saving clinic data:', error);
-      alert('Error al guardar: ' + (error?.message || error));
+      addToast('Error al guardar: ' + (error?.message || error), 'error');
     } finally {
       setSaving(false);
     }
@@ -136,11 +153,20 @@ const Settings = () => {
   };
 
   const tabs = [
-    { id: 'clinic', label: t('settings.tabs.clinic'), icon: 'domain', desc: 'Información general de la clínica' },
-    { id: 'team', label: t('settings.tabs.team'), icon: 'group', desc: 'Gestionar profesionales y personal' },
+    { id: 'clinic', label: t('settings.tabs.clinic'), icon: 'domain', desc: 'Información general de la clínica', restricted: true },
+    { id: 'team', label: t('settings.tabs.team'), icon: 'group', desc: 'Gestionar profesionales y personal', restricted: true },
     { id: 'agenda', label: t('settings.tabs.agenda'), icon: 'calendar_month', desc: 'Horarios y configuración de turnos' },
-    { id: 'whatsapp', label: t('settings.tabs.whatsapp'), icon: 'chat', desc: 'Recordatorios y plantillas' },
-  ];
+    { id: 'whatsapp', label: t('settings.tabs.whatsapp'), icon: 'chat', desc: 'Recordatorios y plantillas', restricted: true },
+  ].filter(tab => {
+    if (tab.restricted && userRole !== 'ADMIN_GLOBAL') {
+      return false;
+    }
+    return true;
+  });
+
+  if (userRole === 'RECEPCIONISTA') {
+    tabs.unshift({ id: 'license_info', label: 'Estado de Suscripción', icon: 'verified_user', desc: 'Consulta el estado de la licencia de la clínica' });
+  }
 
   if (loading) return <div className="p-20 text-center font-bold">Cargando configuración...</div>;
 
@@ -210,6 +236,7 @@ const Settings = () => {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
+              {activeTab === 'license_info' && <LicenseNotice data={clinicData} t={t} />}
               {activeTab === 'clinic' && <ClinicTab data={clinicData} update={updateClinicField} t={t} />}
               {activeTab === 'team' && <TeamTab team={team} roles={roles} t={t} refresh={fetchData} license={clinicData?.licencias} clinicId={clinicData?.id} />}
               {activeTab === 'agenda' && <AgendaTab data={clinicData} update={updateClinicField} t={t} />}
@@ -417,6 +444,7 @@ const ClinicTab = ({ data, update, t }) => {
 };
 
 const TeamTab = ({ team, roles, t, refresh, license, clinicId }) => {
+  const { addToast } = useToast();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showMemberModal, setShowMemberModal] = useState(false);
@@ -438,18 +466,31 @@ const TeamTab = ({ team, roles, t, refresh, license, clinicId }) => {
     if (!selectedMember) return;
     setIsDeleting(true);
     try {
-      // Borramos de perfiles. Nota: El usuario de Auth sigue existiendo 
-      // pero sin perfil no puede entrar a la clínica.
-      const { error } = await supabase
-        .from('perfiles')
-        .delete()
-        .eq('id', selectedMember.id)
-        .eq('clinica_id', clinicId);
+      const { data: { session } } = await supabase.auth.getSession();
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-clinic`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          Authorization: session ? `Bearer ${session.access_token}` : ''
+        },
+        body: JSON.stringify({
+          action: 'delete_member',
+          payload: {
+            member_id: selectedMember.id,
+            clinica_id: clinicId
+          }
+        })
+      });
 
-      if (error) throw error;
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json?.error || json?.message || 'Error al retirar miembro');
+
       refresh && refresh();
+      addToast('Miembro retirado de la clínica correctamente', 'success');
     } catch (error) {
-      alert('Error al eliminar miembro: ' + (error.message || error));
+      addToast('Error al retirar miembro: ' + (error.message || error), 'error');
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
@@ -573,7 +614,7 @@ const TeamTab = ({ team, roles, t, refresh, license, clinicId }) => {
                   onClick={() => { setSelectedMember(member); setShowDeleteConfirm(true); }}
                   className="flex-1 py-2 bg-red-50 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-lg"
                 >
-                  Eliminar
+                  Retirar
                 </button>
               </div>
             </div>
@@ -616,9 +657,9 @@ const TeamTab = ({ team, roles, t, refresh, license, clinicId }) => {
         isOpen={showDeleteConfirm}
         onClose={() => { setShowDeleteConfirm(false); setSelectedMember(null); }}
         onConfirm={handleDelete}
-        title="¿Eliminar miembro?"
-        message={`¿Estás seguro que deseas eliminar a ${selectedMember?.nombre_completo}? Esta acción no se puede deshacer.`}
-        confirmText={isDeleting ? "Eliminando..." : "Sí, eliminar"}
+        title="¿Retirar miembro?"
+        message={`¿Estás seguro que deseas retirar a ${selectedMember?.nombre_completo} de la clínica? Conservará su historial pero ya no podrá acceder a esta clínica.`}
+        confirmText={isDeleting ? "Retirando..." : "Sí, retirar"}
         type="danger"
       />
     </div>
@@ -719,6 +760,7 @@ const WhatsAppTab = ({ data, update, t }) => (
 );
 
 const MemberModal = ({ onClose, member, roles, onSuccess, clinicId }) => {
+  const { addToast } = useToast();
   const [name, setName] = useState(member?.nombre_completo || '');
   const [roleId, setRoleId] = useState(member?.rol_id || '');
   const [loading, setLoading] = useState(false);
@@ -740,8 +782,9 @@ const MemberModal = ({ onClose, member, roles, onSuccess, clinicId }) => {
 
       onClose();
       onSuccess && onSuccess();
+      addToast('Miembro actualizado correctamente', 'success');
     } catch (error) {
-      alert(error.message || error);
+      addToast(error.message || error, 'error');
     } finally {
       setLoading(false);
     }
@@ -785,6 +828,7 @@ const MemberModal = ({ onClose, member, roles, onSuccess, clinicId }) => {
 };
 
 const InviteModal = ({ onClose, roles, onSuccess, limits, maxLimits, clinicId }) => {
+  const { addToast } = useToast();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [roleId, setRoleId] = useState('');
@@ -825,11 +869,11 @@ const InviteModal = ({ onClose, roles, onSuccess, limits, maxLimits, clinicId })
       const json = await resp.json();
       if (!resp.ok) throw new Error(json?.error || json?.message || 'Error en invitación');
 
-      alert('Invitación enviada');
+      addToast('Invitación enviada', 'success');
       onClose();
       onSuccess && onSuccess();
     } catch (error) {
-      alert(error.message || error);
+      addToast(error.message || error, 'error');
     } finally {
       setLoading(false);
     }
@@ -874,6 +918,51 @@ const InviteModal = ({ onClose, roles, onSuccess, limits, maxLimits, clinicId })
           </div>
         </form>
       </motion.div>
+    </div>
+  );
+};
+
+
+const LicenseNotice = ({ data, t }) => {
+  const now = new Date();
+  let expirationDate = null;
+  if (data?.fecha_vencimiento) expirationDate = new Date(data.fecha_vencimiento);
+  const diffMs = expirationDate ? expirationDate.getTime() - now.getTime() : null;
+  const daysRemaining = diffMs != null ? Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24))) : null;
+
+  return (
+    <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 p-10 border border-slate-100 text-left">
+      <div className="flex items-center gap-4 mb-8">
+        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+          <span className="material-symbols-outlined text-3xl">verified_user</span>
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-slate-900">Estado de la Suscripción</h3>
+          <p className="text-slate-500 font-medium">Información importante sobre la licencia de tu clínica</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Plan Actual</p>
+          <p className="text-2xl font-black text-primary">{data?.licencias?.nombre || 'Básico'}</p>
+        </div>
+        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Vencimiento</p>
+          <p className="text-2xl font-black text-slate-900">{expirationDate?.toLocaleDateString() || 'N/A'}</p>
+        </div>
+      </div>
+
+      <div className="p-8 bg-amber-50 rounded-3xl border border-amber-100 flex items-start gap-4">
+        <span className="material-symbols-outlined text-amber-500 text-3xl">info</span>
+        <div>
+          <h4 className="font-bold text-amber-800 mb-1">Nota para Recepción</h4>
+          <p className="text-sm text-amber-700 leading-relaxed">
+            Como recepcionista, puedes ver este panel para estar al tanto de la vigencia del servicio. 
+            Si ves que quedan pocos días (<b>{daysRemaining} días restantes</b>), por favor comunícaselo a tu jefe o al administrador de la clínica para evitar interrupciones en el sistema.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

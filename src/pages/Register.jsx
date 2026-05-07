@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { useToast } from '../components/ToastContext';
 
 import LanguageToggle from '../components/LanguageToggle';
 
 const Register = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -78,12 +80,20 @@ const Register = () => {
       
       if (!authData.user) throw new Error(t('register.error'));
 
-      // 2. Crear la Clínica
+      // 2. Obtener licencia básica por defecto
+      const { data: licenseData } = await supabase
+        .from('licencias')
+        .select('id')
+        .eq('nombre', 'Básica')
+        .single();
+
+      // 3. Crear la Clínica
       const { data: clinicData, error: clinicError } = await supabase
         .from('clinicas')
         .insert([{
           nombre_consultorio: formData.clinicName,
           telefono: formData.phone,
+          licencia_id: licenseData?.id,
           activa: true,
           fecha_vencimiento: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
         }])
@@ -95,7 +105,7 @@ const Register = () => {
         throw new Error(t('register.validation.db_error'));
       }
 
-      // 3. Actualizar el perfil (creado por trigger)
+      // 4. Actualizar el perfil (creado por trigger o upsert)
       const { data: roleData } = await supabase
         .from('roles')
         .select('id')
@@ -106,15 +116,31 @@ const Register = () => {
 
       const { error: profileError } = await supabase
         .from('perfiles')
-        .update({
+        .upsert({
+          id: authData.user.id,
           nombre_completo: formData.name,
           clinica_id: clinicData.id,
           rol_id: roleData.id,
           email: formData.email
-        })
-        .eq('id', authData.user.id);
+        });
 
-      alert(t('register.success'));
+      if (profileError) {
+        console.error("Profile Error:", profileError);
+        // Intentamos un update si el upsert falla por RLS (aunque ya habilitamos UPDATE)
+        const { error: updateError } = await supabase
+          .from('perfiles')
+          .update({
+            nombre_completo: formData.name,
+            clinica_id: clinicData.id,
+            rol_id: roleData.id,
+            email: formData.email
+          })
+          .eq('id', authData.user.id);
+        
+        if (updateError) throw new Error(t('register.validation.db_error'));
+      }
+
+      addToast(t('register.success'), 'success');
       navigate('/login');
 
     } catch (err) {

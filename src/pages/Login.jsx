@@ -32,9 +32,16 @@ const Login = () => {
         .from('perfiles')
         .select('rol_id, roles(nombre), clinicas(activa, fecha_vencimiento)')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
+
+      if (!profile) {
+        // Si el perfil no existe, intentamos crearlo manualmente (fallback por si el trigger falló)
+        // Aunque lo ideal es que el trigger funcione, esto evita el bloqueo total.
+        await supabase.auth.signOut();
+        throw new Error('No se encontró el perfil de usuario. Por favor, intente registrarse de nuevo o contacte soporte.');
+      }
 
       // Verificar licencia
       const clinic = profile.clinicas;
@@ -46,7 +53,9 @@ const Login = () => {
       }
 
       const roleName = profile.roles?.nombre;
-      if (roleName === 'RECEPCIONISTA') {
+      if (roleName === 'ADMIN_GLOBAL') {
+        navigate('/dashboard/adminglobal');
+      } else if (roleName === 'RECEPCIONISTA') {
         navigate('/dashboard/recepcionista');
       } else if (roleName === 'ORTODONCISTA') {
         navigate('/dashboard/dentista');

@@ -68,8 +68,7 @@
       "secure_desc": "Encriptación de grado bancario para todos los registros médicos.",
       "scalable": "Escalabilidad Infinita",
       "scalable_desc": "Desde profesionales independientes hasta redes de múltiples clínicas."
-    }
-    ,
+    },
     "licenses": {
       "title_1": "Planes a tu",
       "title_2": "Medida",
@@ -146,7 +145,6 @@
         }
       }
     }
-
   },
   "dentist": {
     "workstation": "Estación de Trabajo",
@@ -269,7 +267,9 @@
       "next": "Siguiente",
       "back": "Anterior",
       "confirm": "Confirmar"
-    }
+    },
+    "menu": "Menu",
+    "menu_title": "Menu"
   },
   "dashboard": {
     "welcome": "Buen día, Dr. Smith",
@@ -549,8 +549,7 @@
     "actions": {
       "discard": "Descartar",
       "save": "Aplicar Cambios"
-    }
-    ,
+    },
     "license": {
       "no_plan": "Sin plan",
       "no_date": "Sin fecha de vencimiento",
