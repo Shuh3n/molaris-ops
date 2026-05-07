@@ -121,11 +121,12 @@ const Appointments = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'programada': return 'bg-blue-100 text-blue-700';
-      case 'completada': return 'bg-green-100 text-green-700';
-      case 'cancelada': return 'bg-red-100 text-red-700';
-      case 'noshow': return 'bg-amber-100 text-amber-700';
-      default: return 'bg-slate-100 text-slate-700';
+      case 'programada':  return { bg: 'bg-blue-50 text-blue-700 border border-blue-100',   icon: 'calendar_clock' };
+      case 'confirmada':  return { bg: 'bg-emerald-50 text-emerald-700 border border-emerald-100', icon: 'check_circle' };
+      case 'completada':  return { bg: 'bg-green-50 text-green-700 border border-green-100',   icon: 'task_alt' };
+      case 'cancelada':   return { bg: 'bg-red-50 text-red-600 border border-red-100',         icon: 'cancel' };
+      case 'noshow':      return { bg: 'bg-amber-50 text-amber-700 border border-amber-100',   icon: 'event_busy' };
+      default:            return { bg: 'bg-slate-100 text-slate-600 border border-slate-200',  icon: 'help' };
     }
   };
 
@@ -194,7 +195,7 @@ const Appointments = () => {
                       <AppointmentCard 
                         key={apt.id}
                         appointment={apt}
-                        statusColor={getStatusColor(apt.estado)}
+                        statusInfo={getStatusColor(apt.estado)}
                         onView={() => { setSelectedAppointment(apt); setIsDetailOpen(true); }}
                         onEdit={() => { setSelectedAppointment(apt); setIsModalOpen(true); }}
                         onStatusChange={(status) => triggerStatusChange(apt.id, status)}
@@ -237,9 +238,11 @@ const Appointments = () => {
   );
 };
 
-const AppointmentCard = ({ appointment, statusColor, onView, onEdit, onStatusChange }) => {
+const AppointmentCard = ({ appointment, statusInfo, onView, onEdit, onStatusChange }) => {
   const { t } = useTranslation();
   const date = new Date(appointment.fecha_hora);
+  const estado = appointment.estado || 'programada';
+  const { bg, icon } = statusInfo || { bg: 'bg-slate-100 text-slate-600 border border-slate-200', icon: 'help' };
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
       className="grid grid-cols-1 sm:grid-cols-12 items-center bg-white p-4 sm:p-6 rounded-2xl hover:shadow-[0px_20px_40px_rgba(0,97,164,0.06)] transition-all duration-300 border border-slate-50 group">
@@ -257,8 +260,11 @@ const AppointmentCard = ({ appointment, statusColor, onView, onEdit, onStatusCha
         <span className="text-xs font-medium text-slate-400">{date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
       <div className="col-span-1 sm:col-span-2 mb-2 sm:mb-0 text-sm font-medium text-slate-600 text-left">{appointment.perfiles?.nombre_completo || 'Cualquier Dentista'}</div>
-      <div className="col-span-1 sm:col-span-2 mb-3 sm:mb-0 text-left flex items-center gap-2">
-        <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-widest ${statusColor}`}>{t(`appointments.status.${appointment.estado}`)}</span>
+      <div className="col-span-1 sm:col-span-2 mb-3 sm:mb-0 text-left">
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${bg}`}>
+          <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>{icon}</span>
+          {t(`appointments.status.${estado}`, { defaultValue: estado })}
+        </span>
       </div>
       <div className="col-span-1 flex justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         <button onClick={onView} className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all cursor-pointer bg-slate-50 sm:bg-transparent shadow-sm border border-slate-50" title="Ver Detalles"><span className="material-symbols-outlined text-lg">visibility</span></button>

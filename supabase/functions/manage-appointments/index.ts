@@ -22,8 +22,9 @@ serve(async (req) => {
     const method = req.method
     const id = url.searchParams.get('id')
     const type = url.searchParams.get('type')
+    const check = url.searchParams.get('check') === 'true'
 
-    // Get User and Clinic ID
+    // Get User and Clinic ID from Auth Token for security
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('No authorization header')
     const token = authHeader.replace('Bearer ', '')
@@ -39,8 +40,8 @@ serve(async (req) => {
     if (profileError || !profile?.clinica_id) throw new Error('User profile or clinic not found')
     const clinica_id = profile.clinica_id
 
-    // Helper to resolve state name to ID
-    const resolveEstadoId = async (nombre: string) => {
+    // Helper: resolve state name to ID
+    const getEstadoId = async (nombre: string): Promise<string | null> => {
       const { data, error } = await supabaseClient
         .from('estados_cita')
         .select('id')
@@ -50,23 +51,36 @@ serve(async (req) => {
       return data.id
     }
 
-    const check = url.searchParams.get('check') === 'true'
-
-    // GET: Listar citas o motivos
+    // GET: Listar citas, motivos o verificar disponibilidad
     if (method === 'GET') {
+      // 1. Fetch motifs
       if (type === 'motivos') {
         const { data, error } = await supabaseClient
           .from('motivos_consulta')
-          .select('*')
+          .select('id, nombre, costo_base')
           .eq('status', 'activo')
           .order('nombre', { ascending: true })
-        if (error) {
-          console.error('Error fetching motivos:', error)
-          throw error
-        }
-        return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
+        if (error) throw error
+        return new Response(JSON.stringify(data), { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 200 
+        })
       }
 
+      // 2. Fetch statuses
+      if (type === 'estados') {
+        const { data, error } = await supabaseClient
+          .from('estados_cita')
+          .select('id, nombre, descripcion')
+          .order('nombre', { ascending: true })
+        if (error) throw error
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      }
+
+      // 3. Availability check
       if (check) {
         const dentista_id = url.searchParams.get('dentista_id')
         const fecha_hora = url.searchParams.get('fecha_hora')
@@ -75,27 +89,22 @@ serve(async (req) => {
 
         if (!dentista_id || !fecha_hora) throw new Error('Missing parameters for check')
 
-        const start = new Date(fecha_hora)
-        const end = new Date(start.getTime() + duracion_minutos * 60000)
+        const estadoCanceladaId = await getEstadoId('cancelada')
 
         let query = supabaseClient
           .from('citas')
-          .select(`
-            id, 
-            fecha_hora, 
-            duracion_minutos,
-            estados_cita!inner (nombre)
-          `)
+          .select('id, fecha_hora, duracion_minutos, estado_id')
           .eq('dentista_id', dentista_id)
           .eq('clinica_id', clinica_id)
-          .neq('estados_cita.nombre', 'cancelada')
 
-        if (exclude_id) {
-          query = query.neq('id', exclude_id)
-        }
+        if (estadoCanceladaId) query = query.neq('estado_id', estadoCanceladaId)
+        if (exclude_id) query = query.neq('id', exclude_id)
 
         const { data: existingApts, error: queryError } = await query
         if (queryError) throw queryError
+
+        const start = new Date(fecha_hora)
+        const end = new Date(start.getTime() + duracion_minutos * 60000)
 
         const isDisponible = !existingApts?.some(apt => {
           const aptStart = new Date(apt.fecha_hora)
@@ -109,132 +118,168 @@ serve(async (req) => {
         })
       }
 
+      // 4. List all appointments for the clinic
       const { data, error } = await supabaseClient
         .from('citas')
         .select(`
-          *,
-          pacientes (nombre, apellido, telefono),
-          perfiles:perfiles!dentista_id (nombre_completo),
-          motivos_consulta:motivos_consulta!motivo_id (nombre),
-          estados_cita:estados_cita!estado_id (nombre)
+          id,
+          fecha_hora,
+          duracion_minutos,
+          notas_medicas,
+          costo,
+          creado_en,
+          actualizado_en,
+          clinica_id,
+          paciente_id,
+          dentista_id,
+          motivo_id,
+          estado_id,
+          pacientes (id, nombre, apellido, telefono),
+          perfiles:dentista_id (nombre_completo),
+          motivos_consulta:motivo_id (id, nombre),
+          estados_cita:estado_id (id, nombre)
         `)
         .eq('clinica_id', clinica_id)
         .order('fecha_hora', { ascending: true })
 
-      if (error) {
-        console.error('Error fetching appointments:', error)
-        throw error
-      }
+      if (error) throw error
 
-      // Flatten the state name for backward compatibility if needed, 
-      // but let's see if we can just keep the structure and update frontend.
-      // For now, let's inject 'estado' as a top-level property
-      const mappedData = data.map(apt => ({
-        ...apt,
-        estado: apt.estados_cita?.nombre || 'desconocido'
+      const result = (data || []).map((c: any) => ({
+        ...c,
+        estado: c.estados_cita?.nombre ?? 'programada',
       }))
 
-      return new Response(JSON.stringify(mappedData), {
+      return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    // POST: Crear cita
+    // POST: Create appointment
     if (method === 'POST') {
       const body = await req.json()
+
       if (!body.paciente_id || !body.fecha_hora) {
-        throw new Error('Paciente y fecha/hora son obligatorios')
+        throw new Error('paciente_id y fecha_hora son obligatorios')
       }
-      
-      // Resolve estado_id if 'estado' (name) is provided
-      let estado_id = body.estado_id
-      if (!estado_id && body.estado) {
-        estado_id = await resolveEstadoId(body.estado)
-      }
-      // Default to 'programada' if not provided
+
+      // Resolve estado_id - accepts direct ID or state name
+      let estado_id = body.estado_id ?? null
       if (!estado_id) {
-        estado_id = await resolveEstadoId('programada')
+        estado_id = await getEstadoId(body.estado ?? 'programada')
+      }
+      if (!estado_id) {
+        throw new Error('No se encontró el estado solicitado en la tabla estados_cita')
       }
 
       const appointmentData = {
-        ...body,
+        clinica_id,
+        paciente_id: body.paciente_id,
+        dentista_id: body.dentista_id ?? null,
+        fecha_hora: body.fecha_hora,
+        duracion_minutos: body.duracion_minutos ?? 30,
         estado_id,
-        clinica_id: clinica_id
+        motivo_id: body.motivo_id ?? null,
+        notas_medicas: body.notas_medicas ?? null,
+        costo: body.costo ?? 0
       }
-      delete appointmentData.estado // Remove if present to avoid DB error
 
       const { data, error } = await supabaseClient
         .from('citas')
         .insert([appointmentData])
         .select(`
-          *,
-          estados_cita:estados_cita!estado_id (nombre)
+          id, fecha_hora, duracion_minutos, notas_medicas, clinica_id, costo,
+          pacientes (id, nombre, apellido),
+          motivos_consulta:motivo_id (id, nombre),
+          estados_cita:estado_id (id, nombre)
         `)
         .single()
+
       if (error) throw error
-      
+
       return new Response(JSON.stringify({
         ...data,
-        estado: data.estados_cita?.nombre
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 201 })
+        estado: (data as any).estados_cita?.nombre ?? 'programada',
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 201,
+      })
     }
 
-    // PUT/PATCH: Actualizar cita
+    // PUT / PATCH: Update appointment
     if (method === 'PUT' || method === 'PATCH') {
-      if (!id) throw new Error('ID is required for updates')
+      if (!id) throw new Error('id es obligatorio para actualizar')
       const body = await req.json()
-      
-      // Verify the appointment belongs to the clinic before updating
-      const { data: checkData, error: checkError } = await supabaseClient
-        .from('citas')
-        .select('clinica_id')
-        .eq('id', id)
-        .single()
-      
-      if (checkError || checkData?.clinica_id !== clinica_id) {
-        throw new Error('Unauthorized or appointment not found')
+
+      const updateData: Record<string, unknown> = {
+        actualizado_en: new Date().toISOString(),
       }
 
-      // Resolve estado_id if 'estado' (name) is provided
-      if (body.estado && !body.estado_id) {
-        body.estado_id = await resolveEstadoId(body.estado)
+      // Direct fields
+      const directFields = ['fecha_hora', 'duracion_minutos', 'notas_medicas',
+        'paciente_id', 'dentista_id', 'motivo_id', 'costo']
+      for (const key of directFields) {
+        if (key in body) updateData[key] = body[key]
       }
-      delete body.estado // Remove if present
+
+      // Resolve estado_id
+      if (body.estado_id) {
+        updateData.estado_id = body.estado_id
+      } else if (body.estado && typeof body.estado === 'string') {
+        const estadoId = await getEstadoId(body.estado)
+        if (estadoId) updateData.estado_id = estadoId
+      }
 
       const { data, error } = await supabaseClient
         .from('citas')
-        .update(body)
+        .update(updateData)
         .eq('id', id)
+        .eq('clinica_id', clinica_id) // Security: only update if it belongs to this clinic
         .select(`
-          *,
-          estados_cita:estados_cita!estado_id (nombre)
+          id, fecha_hora, duracion_minutos, notas_medicas, costo,
+          pacientes (id, nombre, apellido),
+          motivos_consulta:motivo_id (id, nombre),
+          estados_cita:estado_id (id, nombre)
         `)
         .single()
+
       if (error) throw error
 
       return new Response(JSON.stringify({
         ...data,
-        estado: data.estados_cita?.nombre
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
+        estado: (data as any).estados_cita?.nombre ?? 'programada',
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
     }
 
-    // DELETE: Eliminar cita
+    // DELETE: Delete appointment
     if (method === 'DELETE') {
-      if (!id) throw new Error('ID is required for deletion')
-
+      if (!id) throw new Error('id es obligatorio para eliminar')
       const { error } = await supabaseClient
         .from('citas')
         .delete()
         .eq('id', id)
-        .eq('clinica_id', clinica_id) // Extra safety
-
+        .eq('clinica_id', clinica_id) // Security
+      
       if (error) throw error
-      return new Response(JSON.stringify({ message: 'Appointment deleted successfully' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
+      return new Response(JSON.stringify({ message: 'Cita eliminada correctamente' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 405 })
+    return new Response(JSON.stringify({ error: 'Método no permitido' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 405,
+    })
+
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 })
+    console.error('Error:', error.message)
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 })

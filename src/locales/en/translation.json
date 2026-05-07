@@ -395,6 +395,7 @@
     },
     "status": {
       "programada": "Scheduled",
+      "confirmada": "Confirmed",
       "completada": "Completed",
       "cancelada": "Cancelled",
       "noshow": "No Show"
