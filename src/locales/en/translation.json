@@ -119,6 +119,15 @@
         "view_agenda": "View Full Agenda",
         "master_agenda": "Master Agenda",
         "add_appointment": "+ Schedule Appt",
+        "sidebar": {
+          "dashboard": "Dashboard",
+          "agenda": "Agenda",
+          "patients": "Patients",
+          "billing": "Billing",
+          "management": "Management"
+        },
+        "calendar_view": "Full calendar view in the official dashboard.",
+        "section_title": "Section {{name}}",
         "section_active": "This feature is active for clients with a valid license.",
         "try_free": "TRY FOR FREE",
         "ready_to_transform": "READY TO TRANSFORM YOUR CLINIC?",
@@ -132,6 +141,43 @@
     }
 
   },
+  "dentist": {
+    "workstation": "Workstation",
+    "today_agenda": "Today's Agenda",
+    "edit_clinico": "Clinical Editor",
+    "select_patient": "Select a patient from the list to start care and record notes.",
+    "clinical_notes": "Clinical Treatment Notes",
+    "describe_procedure": "Describe the procedure performed today...",
+    "finish_notes": "Finish Notes",
+    "stats": {
+      "total_today": "Today's Appts",
+      "pending": "Pending",
+      "completed": "Completed"
+    },
+    "tabs": {
+      "today": "Today",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "no_appointments": "No patients scheduled for this period.",
+    "view_agenda": "View Full Agenda",
+    "today_btn": "Today",
+    "next_patient": "Next Patient",
+    "reason": "Reason",
+    "treat_now": "Treat Now",
+    "remaining_agenda": "Remaining Agenda",
+    "agenda_list": "Appointment List",
+    "time": "Time",
+    "treat": "Treat",
+    "view_notes": "View Notes",
+    "visit_finished": "Visit Finished",
+    "in_progress": "Patient in consultation",
+    "no_records": "No previous records.",
+    "chars": "chars",
+    "error_loading": "Error loading agenda",
+    "notes_saved": "Notes saved correctly",
+    "error_saving": "Error saving notes"
+  },
   "login": {
     "welcome": "Welcome Back",
     "subtitle": "Log in to manage your clinic",
@@ -141,7 +187,7 @@
     "remember": "Keep me logged in for 30 days",
     "enter": "Enter Workspace",
     "new": "New to Molaris?",
-    "request": "Request an invite",
+    "request": "Try free version",
     "precision": "Where Precision",
     "meets": "meets",
     "serenity": "Serenity.",

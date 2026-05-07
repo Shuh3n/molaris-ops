@@ -7,29 +7,29 @@ import LicensesSection from '../components/LicensesSection';
 
 // Custom SVG Icons
 const Icons = {
-  WhatsApp: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-7.6 8.38 8.38 0 0 1 3.8.9L22 4l-2 5z"/></svg>
+  WhatsApp: ({ size = 24, strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-7.6 8.38 8.38 0 0 1 3.8.9L22 4l-2 5z"/></svg>
   ),
-  Bill: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+  Bill: ({ size = 24, strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
   ),
-  Team: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  Team: ({ size = 24, strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
   ),
-  Calendar: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+  Calendar: ({ size = 24, strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
   ),
-  Dashboard: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+  Dashboard: ({ size = 24, strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
   ),
-  Check: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  Check: ({ size = 18, strokeWidth = 3, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="20 6 9 17 4 12"/></svg>
   ),
-  ArrowRight: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  ArrowRight: ({ size = 18, strokeWidth = 2.5, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
   ),
-  Shield: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  Shield: ({ size = 24, strokeWidth = 2, ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
   )
 };
 
@@ -203,9 +203,9 @@ const Landing = () => {
         )}
       </AnimatePresence>
 
-      <main className="relative z-10 pt-32">
+      <main className="relative z-10 pt-16 md:pt-20">
         {/* Hero Section */}
-        <section className="px-6 py-20 lg:py-32 max-w-7xl mx-auto flex flex-col items-center text-center">
+        <section className="px-6 py-12 lg:py-20 max-w-7xl mx-auto flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -502,6 +502,7 @@ const ShowcaseItem = ({ title, desc }) => (
 );
 
 const DemoModal = ({ onClose }) => {
+  const { t } = useTranslation();
   const [role, setRole] = useState('recepcionista');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(false);
@@ -519,10 +520,17 @@ const DemoModal = ({ onClose }) => {
       { id: 3, hora: '11:15', paciente: 'Mateo Sánchez', motivo: 'Consulta', estado: 'programada' },
       { id: 4, hora: '14:00', paciente: 'Sofía Castro', motivo: 'Diseño Sonrisa', estado: 'confirmada' },
     ],
+    pacientes: [
+      { id: 1, nombre: 'Carlos Rodríguez', id_doc: '10203040', telefono: '+57 300 123 4567', estado: 'checked_in' },
+      { id: 2, nombre: 'Elena Gómez', id_doc: '50607080', telefono: '+57 310 987 6543', estado: 'completed' },
+      { id: 3, nombre: 'Mateo Sánchez', id_doc: '90102030', telefono: '+57 320 456 7890', estado: 'new' },
+      { id: 4, nombre: 'Sofía Castro', id_doc: '11223344', telefono: '+57 305 222 3333', estado: 'follow_up' },
+    ],
     facturas: [
-      { id: 'FAC-001', paciente: 'Carlos Rodríguez', fecha: '2026-05-04', total: '$120.000', estado: 'pagada' },
-      { id: 'FAC-002', paciente: 'Lucía Méndez', fecha: '2026-05-03', total: '$85.000', estado: 'pendiente' },
-      { id: 'FAC-003', paciente: 'Andrés Villa', fecha: '2026-05-02', total: '$250.000', estado: 'pagada' },
+      { id: 'FAC-001', paciente: 'Carlos Rodríguez', fecha: '2026-05-04', total: '$120.000', estado: 'paid' },
+      { id: 'FAC-002', paciente: 'Lucía Méndez', fecha: '2026-05-03', total: '$85.000', estado: 'pending' },
+      { id: 'FAC-003', paciente: 'Andrés Villa', fecha: '2026-05-02', total: '$250.000', estado: 'paid' },
+      { id: 'FAC-004', paciente: 'Elena Gómez', fecha: '2026-05-01', total: '$1.200.000', estado: 'pending' },
     ],
     equipo: [
       { id: 1, nombre: 'Dr. Arango', rol: 'Ortodoncista', estado: 'activo' },
@@ -534,6 +542,251 @@ const DemoModal = ({ onClose }) => {
       { id: 2, nombre: 'Limpieza Profunda', precio: '$85.000' },
       { id: 3, nombre: 'Ortodoncia (Control)', precio: '$120.000' },
     ]
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <>
+            <header className="space-y-4 text-left">
+              <div className="h-1 w-12 bg-primary rounded-full" />
+              <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.welcome', { name: role === 'recepcionista' ? 'Juana' : 'Dr. Arango' })}</h2>
+              <p className="text-slate-500 font-medium text-xl">{t('landing.licenses.demo_modal.subtitle')}</p>
+            </header>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <StatCard label={t('landing.licenses.demo_modal.stats.appointments')} value="12" icon={<Icons.Calendar />} color="blue" />
+              <StatCard label={t('landing.licenses.demo_modal.stats.whatsapp')} value="28" icon={<Icons.WhatsApp />} color="green" />
+              <StatCard label={t('landing.licenses.demo_modal.stats.revenue')} value="$2.4M" icon={<Icons.Bill />} color="purple" />
+            </div>
+
+            <div className="bg-white p-10 lg:p-12 rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/50 text-left">
+              <div className="flex items-center justify-between mb-10">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.next_appointments')}</h3>
+                <button className="text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:opacity-70 transition-opacity">{t('landing.licenses.demo_modal.view_agenda')}</button>
+              </div>
+              <div className="space-y-4">
+                {mockData.citas.map(cita => (
+                  <div key={cita.id} className="group flex items-center justify-between p-6 bg-slate-50/50 rounded-[2.5rem] hover:bg-white hover:shadow-xl transition-all duration-500 border border-transparent hover:border-slate-100">
+                     <div className="flex items-center gap-8">
+                        <span className="text-xl font-black text-primary/40 group-hover:text-primary transition-colors w-16 tracking-tighter">{cita.hora}</span>
+                        <div>
+                           <p className="text-xl font-black text-slate-900 tracking-tight">{cita.paciente}</p>
+                           <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mt-1">{cita.motivo}</p>
+                        </div>
+                     </div>
+                     <span className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest ${cita.estado === 'confirmada' ? 'bg-green-100 text-green-600' : cita.estado === 'completada' ? 'bg-blue-100 text-blue-600' : 'bg-primary/10 text-primary'}`}>
+                       {t(`appointments.status.${cita.estado}`)}
+                     </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        );
+      case 'citas':
+        return (
+          <div className="space-y-12 text-left">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+               <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.master_agenda')}</h2>
+               <button className="px-10 py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:-translate-y-1 transition-all">{t('landing.licenses.demo_modal.add_appointment')}</button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-6">
+               {['lun','mar','mie','jue','vie','sab','dom'].map((dia, idx) => (
+                 <div key={dia} className={`p-6 rounded-[2rem] border transition-all duration-500 ${idx === 1 ? 'bg-slate-900 text-white border-slate-900 shadow-2xl' : 'bg-white text-slate-900 border-slate-100 shadow-sm'}`}>
+                    <p className={`text-[10px] font-black tracking-widest uppercase mb-2 ${idx === 1 ? 'text-primary' : 'text-slate-400'}`}>{t(`common.days.${dia}`)}</p>
+                    <p className="text-3xl font-black tracking-tighter">{idx + 12}</p>
+                 </div>
+               ))}
+            </div>
+            <div className="bg-white p-32 rounded-[4rem] border-2 border-dashed border-slate-100 text-center flex flex-col items-center justify-center gap-6 group">
+               <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
+                  <Icons.Calendar />
+               </div>
+               <p className="text-2xl font-bold text-slate-300 italic tracking-tight">{t('landing.licenses.demo_modal.calendar_view')}</p>
+            </div>
+          </div>
+        );
+      case 'pacientes':
+        return (
+          <div className="space-y-12 text-left">
+            <header className="space-y-4">
+              <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('patients.title')}</h2>
+              <p className="text-slate-500 font-medium text-xl">{t('patients.subtitle')}</p>
+            </header>
+            <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-2xl overflow-hidden">
+              <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                <div className="flex gap-4">
+                  <div className="px-6 py-3 bg-slate-50 rounded-xl border border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('common.search')}</div>
+                </div>
+                <button className="px-8 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all">{t('patients.new_patient')}</button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-slate-50/50">
+                      <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">{t('patients.table.identity')}</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">{t('patients.table.phone')}</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">{t('patients.table.status')}</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{t('common.actions.view')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {mockData.pacientes.map(p => (
+                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="px-8 py-6">
+                          <p className="font-black text-slate-900 tracking-tight">{p.nombre}</p>
+                          <p className="text-[10px] font-bold text-slate-400">ID: {p.id_doc}</p>
+                        </td>
+                        <td className="px-8 py-6 text-sm font-bold text-slate-600">{p.telefono}</td>
+                        <td className="px-8 py-6">
+                          <span className="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-600">
+                            {t(`patients.status.${p.estado}`)}
+                          </span>
+                        </td>
+                        <td className="px-8 py-6 text-right">
+                          <button className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                            <Icons.ArrowRight size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+      case 'facturacion':
+        return (
+          <div className="space-y-12 text-left">
+            <header className="space-y-4">
+              <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('billing.title')}</h2>
+              <p className="text-slate-500 font-medium text-xl">{t('billing.subtitle')}</p>
+            </header>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl flex flex-col gap-6">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('billing.stats.outstanding')}</p>
+                <p className="text-5xl font-black text-slate-900 tracking-tighter">$1.842.000</p>
+                <div className="px-6 py-3 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest w-fit">{t('billing.stats.action_required')}</div>
+              </div>
+              <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl flex flex-col gap-6">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('billing.stats.revenue_mtd')}</p>
+                <p className="text-5xl font-black text-slate-900 tracking-tighter">$14.500.000</p>
+                <div className="px-6 py-3 bg-green-50 text-green-600 rounded-2xl text-[10px] font-black uppercase tracking-widest w-fit">+12% vs {t('common.filters.month')}</div>
+              </div>
+            </div>
+            <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-2xl overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-50/50">
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">{t('billing.table.patient')}</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">{t('billing.table.date')}</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">{t('billing.table.cost')}</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{t('billing.table.status')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {mockData.facturas.map(f => (
+                    <tr key={f.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-8 py-6">
+                        <p className="font-black text-slate-900 tracking-tight">{f.paciente}</p>
+                        <p className="text-[10px] font-bold text-slate-400">{f.id}</p>
+                      </td>
+                      <td className="px-8 py-6 text-sm font-bold text-slate-600">{f.fecha}</td>
+                      <td className="px-8 py-6 text-sm font-black text-slate-900 tracking-tight">{f.total}</td>
+                      <td className="px-8 py-6 text-right">
+                        <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${f.estado === 'paid' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
+                          {t(`billing.status.${f.estado}`)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      case 'gestion':
+        return (
+          <div className="space-y-12 text-left">
+            <header className="space-y-4">
+              <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('settings.title')}</h2>
+              <p className="text-slate-500 font-medium text-xl">{t('settings.subtitle')}</p>
+            </header>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white p-12 rounded-[4rem] border border-slate-100 shadow-xl space-y-8 group hover:border-primary/20 transition-all duration-500">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-slate-900 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icons.Shield />
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('settings.tabs.clinic')}</h3>
+                  <p className="text-slate-400 font-medium">{t('settings.sections.info')}</p>
+                </div>
+                <div className="p-6 bg-slate-50 rounded-[2rem] space-y-4">
+                   <div className="flex justify-between border-b border-slate-100 pb-4">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{t('settings.fields.name')}</span>
+                      <span className="text-[10px] font-black text-slate-900">Molaris Dental Center</span>
+                   </div>
+                   <div className="flex justify-between">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{t('settings.fields.email')}</span>
+                      <span className="text-[10px] font-black text-slate-900">contacto@molaris.com</span>
+                   </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-12 rounded-[4rem] border border-slate-100 shadow-xl space-y-8 group hover:border-green-500/20 transition-all duration-500">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-green-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icons.WhatsApp />
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('settings.tabs.whatsapp')}</h3>
+                  <p className="text-slate-400 font-medium">{t('settings.alerts.reminders')}</p>
+                </div>
+                <div className="flex items-center gap-4 p-6 bg-green-50 rounded-[2rem]">
+                   <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                   <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">{t('settings.fields.wsp_status')}: Activo</span>
+                </div>
+              </div>
+
+              <div className="bg-white p-12 rounded-[4rem] border border-slate-100 shadow-xl space-y-8 group hover:border-blue-500/20 transition-all duration-500 md:col-span-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-blue-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Icons.Team />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('settings.tabs.team')}</h3>
+                      <p className="text-slate-400 font-medium">{t('settings.sections.team_list')}</p>
+                    </div>
+                  </div>
+                  <button className="px-8 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">{t('settings.access.manage')}</button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                   {mockData.equipo.map(m => (
+                     <div key={m.id} className="p-6 bg-slate-50/50 rounded-[2rem] border border-slate-100 flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-black text-slate-400 shadow-sm border border-slate-100">
+                          {m.nombre[0]}
+                        </div>
+                        <div>
+                           <p className="text-sm font-black text-slate-900 tracking-tight">{m.nombre}</p>
+                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{m.rol}</p>
+                        </div>
+                     </div>
+                   ))}
+                </div>
+              </div>
+            </div>
+            <div className="py-20 text-center space-y-8">
+               <p className="text-xl font-medium text-slate-400">{t('landing.licenses.demo_modal.section_active')}</p>
+               <Link to="/register" onClick={onClose} className="inline-block px-12 py-5 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-primary/30">{t('landing.licenses.demo_modal.try_free')}</Link>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -583,23 +836,23 @@ const DemoModal = ({ onClose }) => {
           {/* Sidebar */}
           <div className="w-20 lg:w-72 bg-white border-r border-slate-100 flex flex-col py-10 shrink-0">
             <nav className="space-y-2 px-4">
-              <DemoSidebarLink icon={<Icons.Dashboard />} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-              <DemoSidebarLink icon={<Icons.Calendar />} label="Agenda" active={activeTab === 'citas'} onClick={() => setActiveTab('citas')} />
-              <DemoSidebarLink icon={<Icons.Team />} label="Pacientes" active={activeTab === 'pacientes'} onClick={() => setActiveTab('pacientes')} />
+              <DemoSidebarLink icon={<Icons.Dashboard />} label={t('landing.licenses.demo_modal.sidebar.dashboard')} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+              <DemoSidebarLink icon={<Icons.Calendar />} label={t('landing.licenses.demo_modal.sidebar.agenda')} active={activeTab === 'citas'} onClick={() => setActiveTab('citas')} />
+              <DemoSidebarLink icon={<Icons.Team />} label={t('landing.licenses.demo_modal.sidebar.patients')} active={activeTab === 'pacientes'} onClick={() => setActiveTab('pacientes')} />
               {role === 'recepcionista' && (
                 <>
-                  <DemoSidebarLink icon={<Icons.Bill />} label="Facturación" active={activeTab === 'facturacion'} onClick={() => setActiveTab('facturacion')} />
-                  <DemoSidebarLink icon={<Icons.Shield />} label="Gestión" active={activeTab === 'gestion'} onClick={() => setActiveTab('gestion')} />
+                  <DemoSidebarLink icon={<Icons.Bill />} label={t('landing.licenses.demo_modal.sidebar.billing')} active={activeTab === 'facturacion'} onClick={() => setActiveTab('facturacion')} />
+                  <DemoSidebarLink icon={<Icons.Shield />} label={t('landing.licenses.demo_modal.sidebar.management')} active={activeTab === 'gestion'} onClick={() => setActiveTab('gestion')} />
                 </>
               )}
             </nav>
             
             <div className="mt-auto px-6 hidden lg:block">
                <div className="p-5 bg-slate-50 rounded-[2rem] flex items-center gap-4 border border-slate-100 shadow-sm">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black">
-                    {role[0].toUpperCase()}
+                  <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-xs uppercase">
+                    {role[0]}
                   </div>
-                  <div className="overflow-hidden">
+                  <div className="overflow-hidden text-left">
                     <p className="text-sm font-black text-slate-900 truncate tracking-tight">{role === 'recepcionista' ? 'Juana Pérez' : 'Dr. Arango'}</p>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{role}</p>
                   </div>
@@ -625,78 +878,9 @@ const DemoModal = ({ onClose }) => {
                   key={activeTab + role}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="max-w-5xl mx-auto space-y-16 text-left"
+                  className="max-w-5xl mx-auto space-y-16"
                 >
-                  {activeTab === 'dashboard' && (
-                    <>
-                      <header className="space-y-4">
-                        <div className="h-1 w-12 bg-primary rounded-full" />
-                        <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.welcome', { name: role === 'recepcionista' ? 'Juana' : 'Dr. Arango' })}</h2>
-                        <p className="text-slate-500 font-medium text-xl">{t('landing.licenses.demo_modal.subtitle')}</p>
-                      </header>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <StatCard label={t('landing.licenses.demo_modal.stats.appointments')} value="12" icon={<Icons.Calendar />} color="blue" />
-                        <StatCard label={t('landing.licenses.demo_modal.stats.whatsapp')} value="28" icon={<Icons.WhatsApp />} color="green" />
-                        <StatCard label={t('landing.licenses.demo_modal.stats.revenue')} value="$2.4M" icon={<Icons.Bill />} color="purple" />
-                      </div>
-
-                      <div className="bg-white p-10 lg:p-12 rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
-                        <div className="flex items-center justify-between mb-10">
-                          <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.next_appointments')}</h3>
-                          <button className="text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:opacity-70 transition-opacity">{t('landing.licenses.demo_modal.view_agenda')}</button>
-                        </div>
-                        <div className="space-y-4">
-                          {mockData.citas.map(cita => (
-                            <div key={cita.id} className="group flex items-center justify-between p-6 bg-slate-50/50 rounded-[2.5rem] hover:bg-white hover:shadow-xl transition-all duration-500 border border-transparent hover:border-slate-100">
-                               <div className="flex items-center gap-8">
-                                  <span className="text-xl font-black text-primary/40 group-hover:text-primary transition-colors w-16 tracking-tighter">{cita.hora}</span>
-                                  <div>
-                                     <p className="text-xl font-black text-slate-900 tracking-tight">{cita.paciente}</p>
-                                     <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mt-1">{cita.motivo}</p>
-                                  </div>
-                               </div>
-                               <span className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest ${cita.estado === 'confirmada' ? 'bg-green-100 text-green-600' : cita.estado === 'completada' ? 'bg-blue-100 text-blue-600' : 'bg-primary/10 text-primary'}`}>
-                                 {cita.estado}
-                               </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {activeTab === 'citas' && (
-                    <div className="space-y-12">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                         <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.master_agenda')}</h2>
-                         <button className="px-10 py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:-translate-y-1 transition-all">{t('landing.licenses.demo_modal.add_appointment')}</button>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-6">
-                         {['LUN','MAR','MIE','JUE','VIE','SAB','DOM'].map((dia, idx) => (
-                           <div key={dia} className={`p-6 rounded-[2rem] border transition-all duration-500 ${idx === 1 ? 'bg-slate-900 text-white border-slate-900 shadow-2xl' : 'bg-white text-slate-900 border-slate-100 shadow-sm'}`}>
-                              <p className={`text-[10px] font-black tracking-widest uppercase mb-2 ${idx === 1 ? 'text-primary' : 'text-slate-400'}`}>{dia}</p>
-                              <p className="text-3xl font-black tracking-tighter">{idx + 12}</p>
-                           </div>
-                         ))}
-                      </div>
-                      <div className="bg-white p-32 rounded-[4rem] border-2 border-dashed border-slate-100 text-center flex flex-col items-center justify-center gap-6 group">
-                         <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
-                            <Icons.Calendar />
-                         </div>
-                         <p className="text-2xl font-bold text-slate-300 italic tracking-tight">Vista de calendario completa en el dashboard oficial.</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Other tabs follow the same logic */}
-                  {activeTab !== 'dashboard' && activeTab !== 'citas' && (
-                    <div className="py-40 text-center space-y-8">
-                       <h3 className="text-4xl font-black text-slate-900 tracking-tight uppercase">Sección {activeTab}</h3>
-                       <p className="text-xl font-medium text-slate-400">{t('landing.licenses.demo_modal.section_active')}</p>
-                       <Link to="/register" onClick={onClose} className="inline-block px-12 py-5 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-primary/30">{t('landing.licenses.demo_modal.try_free')}</Link>
-                    </div>
-                  )}
+                  {renderTabContent()}
                 </motion.div>
               )}
             </AnimatePresence>

@@ -17,6 +17,7 @@ const Patients = () => {
   const [patientToDelete, setPatientToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showInactive, setShowInactive] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-patients`;
 
@@ -25,6 +26,15 @@ const Patients = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
+
+      // Get user role
+      const { data: profile } = await supabase
+        .from('perfiles')
+        .select('roles(nombre)')
+        .eq('id', session.user.id)
+        .single();
+      
+      setUserRole(profile?.roles?.nombre);
 
       const response = await fetch(`${FUNCTION_URL}?all=true`, {
         method: 'GET',
@@ -176,13 +186,15 @@ const Patients = () => {
               className="w-full pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 outline-none font-medium shadow-sm transition-all"
             />
           </div>
-          <button 
-            onClick={() => { setSelectedPatient(null); setIsModalOpen(true); }}
-            className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-lg">add_circle</span>
-            {t('patients.new_patient')}
-          </button>
+          {userRole !== 'ORTODONCISTA' && (
+            <button 
+              onClick={() => { setSelectedPatient(null); setIsModalOpen(true); }}
+              className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-lg">add_circle</span>
+              {t('patients.new_patient')}
+            </button>
+          )}
         </div>
       </header>
 

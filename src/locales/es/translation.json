@@ -126,6 +126,15 @@
         "view_agenda": "Ver Agenda Completa",
         "master_agenda": "Agenda Maestra",
         "add_appointment": "+ Agendar Cita",
+        "sidebar": {
+          "dashboard": "Dashboard",
+          "agenda": "Agenda",
+          "patients": "Pacientes",
+          "billing": "Facturación",
+          "management": "Gestión"
+        },
+        "calendar_view": "Vista de calendario completa en el dashboard oficial.",
+        "section_title": "Sección {{name}}",
         "section_active": "Esta funcionalidad está activa para clientes con licencia vigente.",
         "try_free": "PROBAR GRATIS",
         "ready_to_transform": "¿LISTO PARA TRANSFORMAR TU CLÍNICA?",
@@ -139,6 +148,43 @@
     }
 
   },
+  "dentist": {
+    "workstation": "Estación de Trabajo",
+    "today_agenda": "Agenda de Hoy",
+    "edit_clinico": "Editor Clínico",
+    "select_patient": "Selecciona un paciente de la lista para comenzar la atención y registrar notas.",
+    "clinical_notes": "Notas Clínicas del Tratamiento",
+    "describe_procedure": "Describe el procedimiento realizado hoy...",
+    "finish_notes": "Finalizar Notas",
+    "stats": {
+      "total_today": "Citas Hoy",
+      "pending": "Pendientes",
+      "completed": "Completadas"
+    },
+    "tabs": {
+      "today": "Hoy",
+      "weekly": "Semanal",
+      "monthly": "Mensual"
+    },
+    "no_appointments": "No tienes pacientes programados para este periodo.",
+    "view_agenda": "Ver Agenda Completa",
+    "today_btn": "Hoy",
+    "next_patient": "Próximo Paciente",
+    "reason": "Motivo",
+    "treat_now": "Atender Ahora",
+    "remaining_agenda": "Agenda Restante",
+    "agenda_list": "Lista de Citas",
+    "time": "Hora",
+    "treat": "Atender",
+    "view_notes": "Ver Notas",
+    "visit_finished": "Consulta Finalizada",
+    "in_progress": "Paciente en consulta",
+    "no_records": "Sin registros previos.",
+    "chars": "caracteres",
+    "error_loading": "Error al cargar la agenda",
+    "notes_saved": "Notas guardadas correctamente",
+    "error_saving": "Error al guardar las notas"
+  },
   "login": {
     "welcome": "Bienvenido de Nuevo",
     "subtitle": "Inicia sesión para gestionar tu clínica",
@@ -148,7 +194,7 @@
     "remember": "Mantenerme conectado por 30 días",
     "enter": "Entrar al Espacio de Trabajo",
     "new": "¿Eres nuevo en Molaris?",
-    "request": "Solicita una invitación",
+    "request": "Probar versión gratuita",
     "precision": "Donde la Precisión",
     "meets": "se encuentra con la",
     "serenity": "Serenidad.",
