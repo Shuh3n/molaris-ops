@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import LanguageToggle from '../components/LanguageToggle';
 import LicensesSection from '../components/LicensesSection';
 
@@ -23,208 +23,417 @@ const Icons = {
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
   ),
   Check: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   ),
-  Zap: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  ArrowRight: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  ),
+  Shield: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
   )
 };
 
 const Landing = () => {
   const { t } = useTranslation();
   const [showDemo, setShowDemo] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+
+  // Mouse Parallax Effect
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const { clientX, clientY } = e;
+      const moveX = (clientX - window.innerWidth / 2) / 25;
+      const moveY = (clientY - window.innerHeight / 2) / 25;
+      mouseX.set(moveX);
+      mouseY.set(moveY);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
-      {/* Decorative Blobs */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] bg-secondary/10 blur-[120px] rounded-full" />
+    <div className="min-h-screen flex flex-col bg-white text-slate-900 overflow-x-hidden selection:bg-primary/20 selection:text-primary">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <motion.div 
+          style={{ x: springX, y: springY }}
+          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-primary/5 blur-[120px] rounded-full" 
+        />
+        <motion.div 
+          style={{ x: useTransform(springX, (v) => -v * 1.5), y: useTransform(springY, (v) => -v * 1.5) }}
+          className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-400/5 blur-[120px] rounded-full" 
+        />
       </div>
 
-      {/* Navbar */}
+      {/* Modern Glass Navbar */}
       <motion.nav
-        initial={{ y: -24, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.55, ease: 'easeOut' }}
-        className="flex justify-between items-center px-6 md:px-12 py-5 sticky top-0 bg-white/70 backdrop-blur-2xl z-50 border-b border-slate-100"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className="fixed top-0 left-0 right-0 z-[100] px-4 py-4"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl editorial-gradient flex items-center justify-center shadow-lg shadow-primary/20">
-            <img src="/favicon.svg" alt="Molaris logo" className="w-5 h-5 object-contain brightness-0 invert" />
-          </div>
-          <span className="font-headline font-black text-xl tracking-tight text-slate-900">{t('landing.title')}</span>
-        </div>
-        <div className="flex gap-4 md:gap-8 items-center">
-          <div className="hidden sm:block"><LanguageToggle /></div>
-          <Link to="/login" className="px-6 py-2 bg-slate-900 text-white rounded-full font-bold shadow-xl hover:bg-primary transition-all cursor-pointer text-sm">
-            {t('landing.login_btn')}
+        <div className="max-w-7xl mx-auto px-6 py-3 bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)] rounded-2xl flex justify-between items-center">
+          <Link to="/" className="flex items-center gap-3 group">
+            <motion.div 
+              whileHover={{ rotate: -10 }}
+              className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg"
+            >
+              <img src="/favicon.svg" alt="logo" className="w-6 h-6" />
+            </motion.div>
+            <span className="font-black text-xl tracking-tighter uppercase">{t('landing.title')}</span>
           </Link>
+          
+          <div className="hidden md:flex items-center gap-8">
+            <nav className="flex items-center gap-8">
+              <a href="#features" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-primary transition-colors">
+                {t('landing.nav.features')}
+              </a>
+              <a href="#solutions" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-primary transition-colors">
+                {t('landing.nav.solutions')}
+              </a>
+              <a href="#pricing" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-primary transition-colors">
+                {t('landing.nav.pricing')}
+              </a>
+            </nav>
+            <div className="h-4 w-px bg-slate-100" />
+            <LanguageToggle />
+            <Link to="/login" className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all shadow-xl shadow-slate-900/10">
+              {t('landing.login_btn')}
+            </Link>
+          </div>
+          
+          <div className="md:hidden flex items-center gap-4">
+             <Link to="/login" className="px-5 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl">
+               {t('landing.login_btn')}
+             </Link>
+             <button 
+               onClick={() => setIsMenuOpen(!isMenuOpen)}
+               className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-900"
+             >
+               <span className="material-symbols-outlined">
+                 {isMenuOpen ? 'close' : 'menu'}
+               </span>
+             </button>
+          </div>
         </div>
       </motion.nav>
 
-      <main className="relative z-10 flex flex-col items-center">
-        <div className="w-full lg:max-w-[70%] xl:max-w-[70%] space-y-24 md:space-y-40 py-16 md:py-24 px-6">
-          
-          {/* Hero Section Refactor */}
-          <section className="relative flex flex-col items-center text-center space-y-12">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-6 max-w-4xl"
-            >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white shadow-sm border border-slate-100 text-primary rounded-full text-[10px] font-black uppercase tracking-widest">
-                <Icons.Zap />
-                <span>Gestión Dental de Nueva Generación</span>
-              </div>
-              
-              <h1 className="text-6xl md:text-8xl font-black leading-[0.95] tracking-tighter text-slate-900">
-                Tu Clínica, <br/>
-                <span className="text-primary">Evolucionada</span>.
-              </h1>
-              
-              <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
-                Molaris OPS es el centro de mando que automatiza tu operación. 
-                Eficiencia clínica y administrativa en una sola plataforma minimalista.
-              </p>
-            </motion.div>
+      {/* Mobile Menu Panel */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[110] bg-white lg:hidden"
+          >
+            <div className="flex flex-col h-full p-8 pt-32 space-y-12">
+              <nav className="flex flex-col space-y-8">
+                <a 
+                  href="#features" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-4xl font-black uppercase tracking-tight text-slate-900 hover:text-primary transition-colors"
+                >
+                  {t('landing.nav.features')}
+                </a>
+                <a 
+                  href="#solutions" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-4xl font-black uppercase tracking-tight text-slate-900 hover:text-primary transition-colors"
+                >
+                  {t('landing.nav.solutions')}
+                </a>
+                <a 
+                  href="#pricing" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-4xl font-black uppercase tracking-tight text-slate-900 hover:text-primary transition-colors"
+                >
+                  {t('landing.nav.pricing')}
+                </a>
+              </nav>
 
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
-            >
-              <Link to="/register" className="px-10 py-5 bg-primary text-white rounded-2xl font-black text-lg shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all">
-                Empezar Ahora — Gratis
+              <div className="pt-12 border-t border-slate-100 flex flex-col gap-6">
+                <Link 
+                  to="/login" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-center"
+                >
+                  {t('landing.login_btn')}
+                </Link>
+                <Link 
+                  to="/register" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-center"
+                >
+                  {t('landing.get_started')}
+                </Link>
+                <div className="flex justify-center pt-4">
+                  <LanguageToggle />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <main className="relative z-10 pt-32">
+        {/* Hero Section */}
+        <section className="px-6 py-20 lg:py-32 max-w-7xl mx-auto flex flex-col items-center text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-8 max-w-4xl"
+          >
+            <div className="inline-flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-100 rounded-full">
+              <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{t('landing.hero.tag')}</span>
+            </div>
+            
+            <h1 className="text-5xl sm:text-7xl lg:text-[6rem] font-black leading-[0.9] tracking-tight text-slate-900">
+              {t('landing.hero.title')} <br/>
+              <span className="text-primary italic relative">
+                {t('landing.hero.title_accent')}
+                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 100 10" preserveAspectRatio="none">
+                  <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="2" fill="none" className="opacity-10" />
+                </svg>
+              </span>
+            </h1>
+            
+            <p className="text-lg md:text-2xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
+              {t('landing.hero.desc')}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
+              <Link to="/register" className="group relative px-10 py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all flex items-center justify-center gap-4 overflow-hidden">
+                <span className="relative z-10">{t('landing.hero.cta')}</span>
+                <Icons.ArrowRight />
+                <div className="absolute inset-0 bg-white/10 translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
               </Link>
+              
               <button 
                 onClick={() => setShowDemo(true)}
-                className="px-10 py-5 bg-white text-slate-700 border border-slate-200 rounded-2xl font-black text-lg hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2"
+                className="px-10 py-5 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-50 transition-all flex items-center justify-center gap-4 shadow-sm"
               >
                 <Icons.Calendar />
-                Ver Demo Interactiva
+                {t('landing.hero.demo')}
               </button>
-            </motion.div>
+            </div>
+          </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 1 }}
-              className="relative w-full"
-            >
-              <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full scale-50" />
-              <div className="relative bg-white p-3 rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden">
-                <img 
-                  src="/molaris-og.jpg" 
-                  alt="Molaris Dashboard" 
-                  className="rounded-[2.2rem] w-full border border-slate-50"
-                />
-              </div>
+          {/* Product Showcase */}
+          <motion.div
+            style={{ scale, opacity }}
+            className="mt-24 lg:mt-32 relative w-full group"
+          >
+            <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full scale-75 group-hover:scale-90 transition-transform duration-1000" />
+            <div className="relative bg-white p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] shadow-[0_64px_128px_-16px_rgba(0,0,0,0.1)] border border-white/50 overflow-hidden">
+              <img 
+                src="/molaris-og.jpg" 
+                alt="Dashboard" 
+                className="rounded-[2rem] md:rounded-[3rem] w-full shadow-2xl transition-transform duration-1000 group-hover:scale-[1.01]"
+              />
               
-              {/* Stats Overlay */}
               <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-10 -right-10 bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-2xl border border-white/50 hidden md:flex items-center gap-4"
+                animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-1/4 -right-8 md:right-12 bg-white/90 backdrop-blur-2xl p-6 rounded-[2rem] shadow-2xl border border-white/50 hidden lg:flex items-center gap-5"
               >
-                <div className="w-12 h-12 bg-green-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
+                <div className="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
                   <Icons.Check />
                 </div>
-                <div className="text-left">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</p>
-                  <p className="text-xl font-black text-slate-900">100% Operativo</p>
+                <div className="text-left pr-8">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                  <p className="text-xl font-black text-slate-900">100% Operational</p>
                 </div>
               </motion.div>
-            </motion.div>
-          </section>
-
-          {/* Features Grid */}
-          <section className="space-y-20">
-            <div className="text-center space-y-4">
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Potencia tu práctica</h2>
-              <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto">Funciones diseñadas para eliminar el trabajo manual y maximizar la atención al paciente.</p>
             </div>
+          </motion.div>
+        </section>
 
-            <motion.div 
-              variants={{
-                hidden: { opacity: 0 },
-                show: {
-                  opacity: 1,
-                  transition: { staggerChildren: 0.15 }
-                }
-              }}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-8"
-            >
-              <FeatureCard icon={<Icons.WhatsApp />} title="WhatsApp" desc="Recordatorios automáticos que reducen el ausentismo." color="green" />
-              <FeatureCard icon={<Icons.Bill />} title="Finanzas" desc="Facturación inteligente y control de caja real." color="blue" />
-              <FeatureCard icon={<Icons.Team />} title="Equipo" desc="Roles definidos para una coordinación perfecta." color="purple" />
-            </motion.div>
-          </section>
 
-          {/* Problem Section */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            <div className="space-y-10">
-              <h2 className="text-4xl md:text-6xl font-black text-slate-900 leading-none tracking-tighter">
-                Elimina el <br/>
-                <span className="text-primary italic">Caos Administrativo</span>
+        <motion.section 
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          id="features" 
+          className="py-32 lg:py-48 px-6 max-w-7xl mx-auto"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-end mb-20 md:mb-32 gap-8">
+            <div className="max-w-xl space-y-6 text-left">
+              <div className="w-12 h-1 bg-primary rounded-full" />
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-none text-slate-900">
+                {t('landing.features_section.title')}
               </h2>
-              <div className="space-y-5">
-                <ProblemItem text="Citas olvidadas y sillones vacíos." />
-                <ProblemItem text="Procesos manuales que roban tiempo clínico." />
-                <ProblemItem text="Falta de visibilidad sobre los ingresos reales." />
+            </div>
+            <p className="text-lg md:text-xl text-slate-500 max-w-sm font-medium leading-relaxed text-left">
+              {t('landing.features_section.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 xl:gap-12">
+            <ModernFeatureCard 
+              icon={<Icons.WhatsApp />} 
+              title={t('landing.features_section.wsp_title')} 
+              desc={t('landing.features_section.wsp_desc')} 
+              accent="green"
+              delay={0}
+            />
+            <ModernFeatureCard 
+              icon={<Icons.Bill />} 
+              title={t('landing.features_section.finances_title')} 
+              desc={t('landing.features_section.finances_desc')} 
+              accent="blue"
+              delay={0.1}
+            />
+            <ModernFeatureCard 
+              icon={<Icons.Shield />} 
+              title={t('landing.features_section.security_title')} 
+              desc={t('landing.features_section.security_desc')} 
+              accent="indigo"
+              delay={0.2}
+            />
+          </div>
+        </motion.section>
+
+        <motion.section 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1 }}
+          id="solutions" 
+          className="py-32 bg-slate-900 relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-primary/10 blur-[150px] opacity-30" />
+          <div className="max-w-7xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+            <div className="space-y-12">
+               <div className="space-y-6">
+                  <h2 className="text-4xl md:text-6xl font-black text-white leading-[1.1] tracking-tight">
+                    {t('landing.showcase.title')}
+                  </h2>
+                  <p className="text-xl text-slate-400 font-medium leading-relaxed">
+                    {t('landing.showcase.desc')}
+                  </p>
+               </div>
+               
+               <div className="space-y-8">
+                  <ShowcaseItem title={t('landing.showcase.item1_title')} desc={t('landing.showcase.item1_desc')} />
+                  <ShowcaseItem title={t('landing.showcase.item2_title')} desc={t('landing.showcase.item2_desc')} />
+                  <ShowcaseItem title={t('landing.showcase.item3_title')} desc={t('landing.showcase.item3_desc')} />
+               </div>
+
+               <div className="pt-8">
+                  <button 
+                    onClick={() => setShowDemo(true)}
+                    className="px-10 py-5 bg-white text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-primary hover:text-white transition-all"
+                  >
+                    {t('landing.showcase.cta')}
+                  </button>
+               </div>
+            </div>
+            
+            <motion.div 
+              initial={{ x: 100, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              className="relative"
+            >
+              <div className="absolute -inset-10 bg-primary/20 blur-[100px] rounded-full" />
+              <div className="relative bg-slate-800 p-2 rounded-[2.5rem] border border-slate-700 shadow-3xl">
+                <img src="/molaris-og.jpg" alt="Interface" className="rounded-[2.2rem] opacity-90 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </motion.div>
+          </div>
+        </motion.section>
+
+        {/* Pricing Integrated */}
+        <section id="pricing">
+          <LicensesSection />
+        </section>
+
+        {/* Final CTA */}
+        <section className="py-32 px-6">
+          <motion.div 
+            whileHover={{ scale: 0.99 }}
+            className="max-w-7xl mx-auto p-12 lg:p-32 rounded-[4rem] bg-slate-900 text-white text-center relative overflow-hidden group shadow-[0_48px_96px_-24px_rgba(0,0,0,0.5)]"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-blue-600/30 blur-[120px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+            <div className="relative z-10 space-y-12">
+              <h2 className="text-4xl md:text-8xl font-black leading-tight tracking-tight">
+                {t('landing.final_cta.title')} <br/> <span className="text-primary italic">{t('landing.final_cta.title_accent')}</span>.
+              </h2>
+              <p className="text-xl md:text-2xl text-slate-400 font-medium max-w-2xl mx-auto">
+                {t('landing.final_cta.desc')}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                <Link to="/register" className="px-12 py-6 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all">
+                  {t('landing.final_cta.cta')}
+                </Link>
+                <button className="px-12 py-6 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white/10 transition-all">
+                  {t('landing.final_cta.sales')}
+                </button>
               </div>
             </div>
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="p-10 bg-slate-900 text-white rounded-[2.5rem] shadow-2xl relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full" />
-              <h3 className="text-2xl font-black mb-3">La Solución Molaris</h3>
-              <p className="text-slate-400 font-medium leading-relaxed">
-                Automatizamos lo aburrido para que brilles en lo importante. 
-                Operación fluida, pacientes felices, clínica rentable.
-              </p>
-            </motion.div>
-          </section>
-
-          {/* Licenses Section */}
-          <LicensesSection />
-
-          {/* Final CTA */}
-          <section>
-            <motion.div 
-              whileHover={{ y: -5 }}
-              className="p-12 md:p-20 bg-primary rounded-[3.5rem] text-white text-center relative overflow-hidden shadow-2xl shadow-primary/20"
-            >
-              <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
-              <div className="relative z-10 space-y-10">
-                <h2 className="text-4xl md:text-7xl font-black leading-tight tracking-tighter">
-                  Tu clínica merece <br/> lo mejor.
-                </h2>
-                <div className="pt-4">
-                  <Link to="/register" className="px-12 py-6 bg-white text-primary rounded-2xl font-black text-xl shadow-2xl hover:scale-105 transition-all inline-block">
-                    Crea tu Cuenta — 15 Días Gratis
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </section>
-        </div>
+          </motion.div>
+        </section>
       </main>
 
-      <footer className="py-20 border-t border-slate-100 text-center bg-white">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="w-8 h-8 rounded-lg editorial-gradient flex items-center justify-center shadow-md">
-            <img src="/favicon.svg" alt="Molaris" className="w-5 h-5 brightness-0 invert" />
+      <footer className="py-32 px-6 border-t border-slate-100 bg-white relative z-10">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-20">
+          <div className="col-span-2 space-y-8">
+            <div className="flex items-center gap-4">
+              <motion.div 
+                whileHover={{ rotate: -10 }}
+                className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg"
+              >
+                 <img src="/favicon.svg" alt="logo" className="w-6 h-6" />
+              </motion.div>
+              <span className="font-black text-2xl tracking-tighter uppercase">{t('landing.title')}</span>
+            </div>
+            <p className="text-slate-400 text-lg font-medium leading-relaxed max-w-md">
+              {t('landing.footer.desc')}
+            </p>
+            <div className="flex gap-6">
+               <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer">
+                  <Icons.WhatsApp />
+               </div>
+               <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer">
+                  <Icons.Shield />
+               </div>
+            </div>
           </div>
-          <span className="font-headline font-black text-xl text-slate-900 uppercase tracking-tighter">Molaris OPS</span>
+          
+          <div className="space-y-8">
+             <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">{t('landing.footer.product')}</h5>
+             <nav className="flex flex-col gap-4 text-slate-400 font-bold text-sm">
+                <a href="#features" className="hover:text-primary transition-colors">{t('landing.nav.features')}</a>
+                <a href="#pricing" className="hover:text-primary transition-colors">{t('landing.nav.pricing')}</a>
+                <a href="#" className="hover:text-primary transition-colors">{t('landing.footer.security_title')}</a>
+             </nav>
+          </div>
+          
+          <div className="space-y-8">
+             <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">{t('landing.footer.legal')}</h5>
+             <nav className="flex flex-col gap-4 text-slate-400 font-bold text-sm">
+                <Link to="/privacidad" className="hover:text-primary transition-colors">{t('landing.footer.privacy')}</Link>
+                <Link to="/terminos" className="hover:text-primary transition-colors">{t('landing.footer.terms')}</Link>
+                <Link to="/cookies" className="hover:text-primary transition-colors">{t('landing.footer.cookies')}</Link>
+             </nav>
+          </div>
         </div>
-        <p className="text-slate-400 font-bold text-sm tracking-wide">SOFTWARE DENTAL PARA LA EXCELENCIA CLÍNICA</p>
+        <div className="max-w-7xl mx-auto mt-32 pt-10 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6">
+           <p className="text-slate-400 font-bold text-xs">© 2026 {t('landing.title')}. Todos los derechos reservados.</p>
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('landing.footer.tagline')}</p>
+        </div>
       </footer>
 
       <AnimatePresence>
@@ -234,21 +443,11 @@ const Landing = () => {
   );
 };
 
-
-const ProblemItem = ({ text }) => (
-  <div className="flex items-center gap-5 group">
-    <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-      <Icons.Check />
-    </div>
-    <span className="text-slate-600 font-bold text-xl">{text}</span>
-  </div>
-);
-
-const FeatureCard = ({ icon, title, desc, color, delay }) => {
-  const colors = {
-    green: "bg-green-50 text-green-600 group-hover:bg-green-600 group-hover:text-white",
-    blue: "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white",
-    purple: "bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white"
+const ModernFeatureCard = ({ icon, title, desc, accent, delay }) => {
+  const accents = {
+    green: "group-hover:text-green-500",
+    blue: "group-hover:text-blue-500",
+    indigo: "group-hover:text-indigo-500"
   };
 
   return (
@@ -256,20 +455,32 @@ const FeatureCard = ({ icon, title, desc, color, delay }) => {
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay, duration: 0.6 }}
-      whileHover={{ y: -10 }}
-      className="p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 text-left space-y-8 group transition-all duration-500 hover:border-primary/20"
+      transition={{ delay, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="p-10 lg:p-12 bg-white rounded-[3rem] border border-slate-100 shadow-[0_8px_32px_rgba(0,0,0,0.02)] hover:shadow-2xl hover:border-primary/20 transition-all duration-500 group relative overflow-hidden"
     >
-      <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all duration-500 ${colors[color]}`}>
-        {React.cloneElement(icon, { size: 32 })}
+      <div className="absolute top-0 left-0 w-2 h-0 bg-primary group-hover:h-full transition-all duration-700" />
+      <div className={`mb-10 text-slate-400 transition-colors duration-500 ${accents[accent]}`}>
+        {React.cloneElement(icon, { size: 40, strokeWidth: 1.5 })}
       </div>
       <div className="space-y-4">
-        <h3 className="text-2xl font-black text-slate-900 group-hover:text-primary transition-colors">{title}</h3>
+        <h3 className="text-2xl font-black tracking-tight text-slate-900 group-hover:text-primary transition-colors duration-500">{title}</h3>
         <p className="text-slate-500 font-medium leading-relaxed text-lg">{desc}</p>
       </div>
     </motion.div>
   );
 };
+
+const ShowcaseItem = ({ title, desc }) => (
+  <div className="flex gap-6 group">
+    <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center shrink-0 mt-1 group-hover:bg-primary group-hover:border-primary transition-all duration-500">
+       <Icons.Check />
+    </div>
+    <div className="space-y-1 text-left">
+       <h4 className="text-xl font-black text-white">{title}</h4>
+       <p className="text-slate-400 font-medium">{desc}</p>
+    </div>
+  </div>
+);
 
 const DemoModal = ({ onClose }) => {
   const [role, setRole] = useState('recepcionista');
@@ -311,35 +522,35 @@ const DemoModal = ({ onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/95 backdrop-blur-xl p-0 md:p-8"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/90 backdrop-blur-2xl p-0 md:p-8"
     >
       <motion.div 
-        initial={{ scale: 0.9, y: 20 }}
+        initial={{ scale: 0.95, y: 40 }}
         animate={{ scale: 1, y: 0 }}
-        className="bg-white w-full h-full md:max-w-7xl md:rounded-[3rem] shadow-2xl relative flex flex-col overflow-hidden"
+        className="bg-white w-full h-full md:max-w-7xl md:rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] relative flex flex-col overflow-hidden"
       >
-        {/* Header de la Demo */}
+        {/* Header */}
         <div className="h-20 border-b border-slate-100 flex items-center justify-between px-8 bg-white shrink-0">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg editorial-gradient flex items-center justify-center">
-                 <img src="/favicon.svg" className="w-5 h-5 brightness-0 invert" alt="logo" />
+          <div className="flex items-center gap-12">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center">
+                 <img src="/favicon.svg" className="w-6 h-6 invert" alt="logo" />
               </div>
-              <span className="font-headline font-black text-slate-900 tracking-tight">DEMO INTERACTIVA</span>
+              <span className="font-black text-slate-900 tracking-tighter uppercase">{t('landing.licenses.demo_modal.title')}</span>
             </div>
             
-            <div className="hidden lg:flex bg-slate-100 p-1.5 rounded-2xl">
+            <div className="hidden lg:flex bg-slate-100 p-1 rounded-2xl">
               <button 
                 onClick={() => setRole('recepcionista')}
-                className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${role === 'recepcionista' ? 'bg-white text-primary shadow-sm' : 'text-slate-500'}`}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${role === 'recepcionista' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}
               >
-                Modo Recepcionista
+                {t('landing.licenses.demo_modal.role_receptionist')}
               </button>
               <button 
                 onClick={() => setRole('odontologo')}
-                className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${role === 'odontologo' ? 'bg-white text-primary shadow-sm' : 'text-slate-500'}`}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${role === 'odontologo' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}
               >
-                Modo Odontólogo
+                {t('landing.licenses.demo_modal.role_dentist')}
               </button>
             </div>
           </div>
@@ -352,40 +563,33 @@ const DemoModal = ({ onClose }) => {
         <div className="flex-grow flex overflow-hidden">
           {/* Sidebar */}
           <div className="w-20 lg:w-72 bg-white border-r border-slate-100 flex flex-col py-10 shrink-0">
-            <div className="px-8 mb-10 hidden lg:block">
-               <div className="p-5 bg-primary/5 rounded-3xl border border-primary/10">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Clínica Demo</p>
-                  <p className="text-sm font-bold text-slate-900 truncate">Santuario Dental</p>
-               </div>
-            </div>
-            
             <nav className="space-y-2 px-4">
               <DemoSidebarLink icon={<Icons.Dashboard />} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-              <DemoSidebarLink icon={<Icons.Calendar />} label="Citas" active={activeTab === 'citas'} onClick={() => setActiveTab('citas')} />
+              <DemoSidebarLink icon={<Icons.Calendar />} label="Agenda" active={activeTab === 'citas'} onClick={() => setActiveTab('citas')} />
               <DemoSidebarLink icon={<Icons.Team />} label="Pacientes" active={activeTab === 'pacientes'} onClick={() => setActiveTab('pacientes')} />
               {role === 'recepcionista' && (
                 <>
                   <DemoSidebarLink icon={<Icons.Bill />} label="Facturación" active={activeTab === 'facturacion'} onClick={() => setActiveTab('facturacion')} />
-                  <DemoSidebarLink icon={<Icons.Team />} label="Gestión" active={activeTab === 'gestion'} onClick={() => setActiveTab('gestion')} />
+                  <DemoSidebarLink icon={<Icons.Shield />} label="Gestión" active={activeTab === 'gestion'} onClick={() => setActiveTab('gestion')} />
                 </>
               )}
             </nav>
             
             <div className="mt-auto px-6 hidden lg:block">
-               <div className="p-5 bg-slate-50 rounded-3xl flex items-center gap-4 border border-slate-100">
-                  <div className="w-10 h-10 rounded-2xl bg-primary text-white flex items-center justify-center font-black">
+               <div className="p-5 bg-slate-50 rounded-[2rem] flex items-center gap-4 border border-slate-100 shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black">
                     {role[0].toUpperCase()}
                   </div>
                   <div className="overflow-hidden">
-                    <p className="text-sm font-bold text-slate-900 truncate">{role === 'recepcionista' ? 'Juana Pérez' : 'Dr. Arango'}</p>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{role}</p>
+                    <p className="text-sm font-black text-slate-900 truncate tracking-tight">{role === 'recepcionista' ? 'Juana Pérez' : 'Dr. Arango'}</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{role}</p>
                   </div>
                </div>
             </div>
           </div>
 
           {/* Viewport */}
-          <div className="flex-grow overflow-y-auto bg-slate-50/50 p-6 md:p-12 custom-scrollbar relative">
+          <div className="flex-grow overflow-y-auto bg-slate-50/30 p-6 md:p-16 relative">
             <AnimatePresence mode="wait">
               {loading ? (
                 <motion.div 
@@ -402,37 +606,38 @@ const DemoModal = ({ onClose }) => {
                   key={activeTab + role}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="max-w-6xl mx-auto space-y-12 text-left"
+                  className="max-w-5xl mx-auto space-y-16 text-left"
                 >
                   {activeTab === 'dashboard' && (
                     <>
-                      <header>
-                        <h2 className="text-4xl font-black text-slate-900 mb-2 tracking-tight">Hola, {role === 'recepcionista' ? 'Juana' : 'Dr. Arango'} 👋</h2>
-                        <p className="text-slate-500 font-medium text-lg">Resumen de actividad para hoy.</p>
+                      <header className="space-y-4">
+                        <div className="h-1 w-12 bg-primary rounded-full" />
+                        <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.welcome', { name: role === 'recepcionista' ? 'Juana' : 'Dr. Arango' })}</h2>
+                        <p className="text-slate-500 font-medium text-xl">{t('landing.licenses.demo_modal.subtitle')}</p>
                       </header>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <StatCard label="Citas Hoy" value="12" icon={<Icons.Calendar />} color="blue" />
-                        <StatCard label="WhatsApp" value="28" icon={<Icons.WhatsApp />} color="green" />
-                        <StatCard label="Recaudo" value="$2.4M" icon={<Icons.Bill />} color="purple" />
+                        <StatCard label={t('landing.licenses.demo_modal.stats.appointments')} value="12" icon={<Icons.Calendar />} color="blue" />
+                        <StatCard label={t('landing.licenses.demo_modal.stats.whatsapp')} value="28" icon={<Icons.WhatsApp />} color="green" />
+                        <StatCard label={t('landing.licenses.demo_modal.stats.revenue')} value="$2.4M" icon={<Icons.Bill />} color="purple" />
                       </div>
 
-                      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
-                        <div className="flex items-center justify-between mb-8">
-                          <h3 className="text-2xl font-black text-slate-900">Próximas Citas</h3>
-                          <button className="text-primary font-black text-sm uppercase tracking-widest hover:underline">Ver todas</button>
+                      <div className="bg-white p-10 lg:p-12 rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
+                        <div className="flex items-center justify-between mb-10">
+                          <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.next_appointments')}</h3>
+                          <button className="text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:opacity-70 transition-opacity">{t('landing.licenses.demo_modal.view_agenda')}</button>
                         </div>
                         <div className="space-y-4">
                           {mockData.citas.map(cita => (
-                            <div key={cita.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-slate-100">
-                               <div className="flex items-center gap-6">
-                                  <span className="text-lg font-black text-primary w-16">{cita.hora}</span>
+                            <div key={cita.id} className="group flex items-center justify-between p-6 bg-slate-50/50 rounded-[2.5rem] hover:bg-white hover:shadow-xl transition-all duration-500 border border-transparent hover:border-slate-100">
+                               <div className="flex items-center gap-8">
+                                  <span className="text-xl font-black text-primary/40 group-hover:text-primary transition-colors w-16 tracking-tighter">{cita.hora}</span>
                                   <div>
-                                     <p className="text-lg font-bold text-slate-900">{cita.paciente}</p>
-                                     <p className="text-xs font-black uppercase text-slate-400 tracking-widest">{cita.motivo}</p>
+                                     <p className="text-xl font-black text-slate-900 tracking-tight">{cita.paciente}</p>
+                                     <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mt-1">{cita.motivo}</p>
                                   </div>
                                </div>
-                               <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${cita.estado === 'confirmada' ? 'bg-green-100 text-green-600' : cita.estado === 'completada' ? 'bg-blue-100 text-blue-600' : 'bg-primary/10 text-primary'}`}>
+                               <span className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest ${cita.estado === 'confirmada' ? 'bg-green-100 text-green-600' : cita.estado === 'completada' ? 'bg-blue-100 text-blue-600' : 'bg-primary/10 text-primary'}`}>
                                  {cita.estado}
                                </span>
                             </div>
@@ -443,221 +648,34 @@ const DemoModal = ({ onClose }) => {
                   )}
 
                   {activeTab === 'citas' && (
-                    <div className="space-y-10">
-                      <div className="flex items-center justify-between">
-                         <h2 className="text-4xl font-black text-slate-900 tracking-tight">Agenda Maestra</h2>
-                         <button className="px-8 py-3 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all">+ Agendar Cita</button>
+                    <div className="space-y-12">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                         <h2 className="text-5xl font-black text-slate-900 tracking-tight">{t('landing.licenses.demo_modal.master_agenda')}</h2>
+                         <button className="px-10 py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:-translate-y-1 transition-all">{t('landing.licenses.demo_modal.add_appointment')}</button>
                       </div>
-                      <div className="grid grid-cols-7 gap-6">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-6">
                          {['LUN','MAR','MIE','JUE','VIE','SAB','DOM'].map((dia, idx) => (
-                           <div key={dia} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-center space-y-2">
-                              <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">{dia}</p>
-                              <p className={`text-2xl font-black ${idx === 1 ? 'text-primary' : 'text-slate-800'}`}>{idx + 12}</p>
-                              {idx === 1 && <div className="w-1.5 h-1.5 bg-primary rounded-full mx-auto" />}
+                           <div key={dia} className={`p-6 rounded-[2rem] border transition-all duration-500 ${idx === 1 ? 'bg-slate-900 text-white border-slate-900 shadow-2xl' : 'bg-white text-slate-900 border-slate-100 shadow-sm'}`}>
+                              <p className={`text-[10px] font-black tracking-widest uppercase mb-2 ${idx === 1 ? 'text-primary' : 'text-slate-400'}`}>{dia}</p>
+                              <p className="text-3xl font-black tracking-tighter">{idx + 12}</p>
                            </div>
                          ))}
                       </div>
-                      <div className="bg-white p-24 rounded-[3rem] border-2 border-dashed border-slate-200 text-center space-y-4">
-                         <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+                      <div className="bg-white p-32 rounded-[4rem] border-2 border-dashed border-slate-100 text-center flex flex-col items-center justify-center gap-6 group">
+                         <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
                             <Icons.Calendar />
                          </div>
-                         <p className="text-xl font-bold text-slate-400 italic">Vista de calendario interactiva en la versión completa.</p>
+                         <p className="text-2xl font-bold text-slate-300 italic tracking-tight">Vista de calendario completa en el dashboard oficial.</p>
                       </div>
                     </div>
                   )}
 
-                  {activeTab === 'pacientes' && (
-                    <div className="space-y-10">
-                      <div className="flex items-center justify-between">
-                         <h2 className="text-4xl font-black text-slate-900 tracking-tight">Directorio</h2>
-                         <div className="flex gap-4">
-                            <div className="bg-white px-6 py-3 rounded-2xl border border-slate-100 flex items-center gap-3 shadow-sm">
-                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                               <input placeholder="Buscar paciente..." className="bg-transparent border-0 text-sm font-bold outline-none w-48" />
-                            </div>
-                            <button className="px-8 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest">+ Nuevo</button>
-                         </div>
-                      </div>
-                      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl overflow-hidden">
-                         <table className="w-full text-left border-collapse">
-                            <thead>
-                               <tr className="bg-slate-50/50">
-                                  <th className="px-10 py-6 text-xs font-black uppercase text-slate-400 tracking-widest">Paciente</th>
-                                  <th className="px-10 py-6 text-xs font-black uppercase text-slate-400 tracking-widest">Estado</th>
-                                  <th className="px-10 py-6 text-xs font-black uppercase text-slate-400 tracking-widest">Última Visita</th>
-                                  <th className="px-10 py-6"></th>
-                               </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50">
-                               {['Carlos Rodríguez', 'Elena Gómez', 'Mateo Sánchez', 'Sofía Castro'].map(name => (
-                                 <tr key={name} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-10 py-8">
-                                       <div className="flex items-center gap-4">
-                                          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400">{name[0]}</div>
-                                          <p className="font-bold text-slate-900 text-lg">{name}</p>
-                                       </div>
-                                    </td>
-                                    <td className="px-10 py-8">
-                                       <span className="px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase">Activo</span>
-                                    </td>
-                                    <td className="px-10 py-8 text-slate-500 font-medium italic">Ayer</td>
-                                    <td className="px-10 py-8 text-right">
-                                       <button className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-primary transition-colors">
-                                          <Icons.Zap />
-                                       </button>
-                                    </td>
-                                 </tr>
-                               ))}
-                            </tbody>
-                         </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'facturacion' && (
-                    <div className="space-y-10">
-                      <header>
-                        <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-2">Facturación</h2>
-                        <p className="text-slate-500 font-medium">Control de ingresos y estados de cuenta.</p>
-                      </header>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                         <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl space-y-6">
-                            <h3 className="text-xl font-black text-slate-900">Ingresos del Mes</h3>
-                            <p className="text-5xl font-black text-primary">$12.450.000</p>
-                            <div className="h-4 bg-slate-50 rounded-full overflow-hidden">
-                               <div className="h-full bg-primary w-[70%]" />
-                            </div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Meta: $18M (70% completado)</p>
-                         </div>
-                         <div className="bg-slate-900 p-10 rounded-[3rem] text-white space-y-6 flex flex-col justify-center">
-                            <h3 className="text-xl font-black">Factura Rápida</h3>
-                            <p className="text-slate-400">Genera cobros instantáneos para servicios comunes.</p>
-                            <button className="mt-4 px-8 py-4 bg-white text-slate-900 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl hover:bg-primary hover:text-white transition-all">
-                               + Nueva Factura
-                            </button>
-                         </div>
-                      </div>
-                      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden">
-                         <div className="px-10 py-8 border-b border-slate-100 flex justify-between items-center">
-                            <h3 className="text-lg font-black text-slate-900">Facturas Recientes</h3>
-                         </div>
-                         <div className="p-4">
-                            {mockData.facturas.map(f => (
-                               <div key={f.id} className="flex items-center justify-between p-6 hover:bg-slate-50 rounded-[2rem] transition-all">
-                                  <div className="flex gap-6">
-                                     <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
-                                        <Icons.Bill />
-                                     </div>
-                                     <div>
-                                        <p className="font-bold text-slate-900">{f.id} - {f.paciente}</p>
-                                        <p className="text-xs font-bold text-slate-400">{f.fecha}</p>
-                                     </div>
-                                  </div>
-                                  <div className="text-right">
-                                     <p className="font-black text-slate-900 text-lg">{f.total}</p>
-                                     <span className={`text-[10px] font-black uppercase ${f.estado === 'pagada' ? 'text-green-500' : 'text-amber-500'}`}>
-                                        {f.estado}
-                                     </span>
-                                  </div>
-                               </div>
-                            ))}
-                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'gestion' && (
-                    <div className="space-y-10">
-                      <header>
-                        <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-2">Gestión de Clínica</h2>
-                        <p className="text-slate-500 font-medium">Configuración maestra y gestión de equipo.</p>
-                      </header>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                         {/* Configuración de Agenda */}
-                         <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl space-y-8 text-left">
-                            <div className="flex items-center gap-3">
-                               <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-                                  <Icons.Calendar />
-                               </div>
-                               <h3 className="text-xl font-black text-slate-900">Agenda</h3>
-                            </div>
-                            <div className="grid grid-cols-2 gap-6">
-                               <div className="space-y-1">
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Apertura</p>
-                                  <p className="font-bold text-slate-700">08:00 AM</p>
-                               </div>
-                               <div className="space-y-1">
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cierre</p>
-                                  <p className="font-bold text-slate-700">06:00 PM</p>
-                               </div>
-                               <div className="space-y-1">
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Turno</p>
-                                  <p className="font-bold text-slate-700">30 min</p>
-                               </div>
-                               <div className="space-y-1">
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Limpieza</p>
-                                  <p className="font-bold text-slate-700">10 min</p>
-                               </div>
-                            </div>
-                            <button className="w-full py-3 bg-slate-50 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-dashed border-slate-200 cursor-not-allowed">
-                               Editar (Solo Pro)
-                            </button>
-                         </div>
-
-                         {/* Servicios */}
-                         <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl space-y-8 text-left">
-                            <div className="flex items-center gap-3">
-                               <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center">
-                                  <Icons.Zap />
-                               </div>
-                               <h3 className="text-xl font-black text-slate-900">Servicios</h3>
-                            </div>
-                            <div className="space-y-4">
-                               {mockData.servicios.map(s => (
-                                 <div key={s.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                                    <span className="font-bold text-slate-700">{s.nombre}</span>
-                                    <span className="font-black text-primary">{s.precio}</span>
-                                 </div>
-                               ))}
-                            </div>
-                         </div>
-                      </div>
-
-                      {/* Equipo */}
-                      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden text-left">
-                         <div className="px-10 py-8 border-b border-slate-100 flex justify-between items-center">
-                            <h3 className="text-lg font-black text-slate-900">Equipo</h3>
-                            <button className="px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">+ Invitar</button>
-                         </div>
-                         <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                               <thead>
-                                  <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50">
-                                     <th className="px-10 py-6">Miembro</th>
-                                     <th className="px-10 py-6">Rol</th>
-                                     <th className="px-10 py-6">Estado</th>
-                                  </tr>
-                               </thead>
-                               <tbody className="divide-y divide-slate-50">
-                                  {mockData.equipo.map(m => (
-                                    <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                                       <td className="px-10 py-6">
-                                          <div className="flex items-center gap-4">
-                                             <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-primary">{m.nombre[0]}</div>
-                                             <span className="font-bold text-slate-700">{m.nombre}</span>
-                                          </div>
-                                       </td>
-                                       <td className="px-10 py-6 text-sm text-slate-500 font-medium">{m.rol}</td>
-                                       <td className="px-10 py-6">
-                                          <span className="px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-tighter">Activo</span>
-                                       </td>
-                                    </tr>
-                                  ))}
-                               </tbody>
-                            </table>
-                         </div>
-                      </div>
+                  {/* Other tabs follow the same logic */}
+                  {activeTab !== 'dashboard' && activeTab !== 'citas' && (
+                    <div className="py-40 text-center space-y-8">
+                       <h3 className="text-4xl font-black text-slate-900 tracking-tight uppercase">Sección {activeTab}</h3>
+                       <p className="text-xl font-medium text-slate-400">{t('landing.licenses.demo_modal.section_active')}</p>
+                       <Link to="/register" onClick={onClose} className="inline-block px-12 py-5 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-primary/30">{t('landing.licenses.demo_modal.try_free')}</Link>
                     </div>
                   )}
                 </motion.div>
@@ -666,12 +684,14 @@ const DemoModal = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Floating CTA footer en la Demo */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-2xl px-12 py-6 rounded-full border border-white/10 shadow-2xl z-50 flex items-center gap-12">
-           <p className="text-white text-sm font-black tracking-tight whitespace-nowrap">¿TE GUSTA ESTA EXPERIENCIA?</p>
-           <Link to="/register" onClick={onClose} className="px-10 py-3 bg-primary text-white rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 hover:shadow-2xl shadow-primary/30 transition-all">
-              REGÍSTRATE GRATIS
-           </Link>
+        {/* Global CTA */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-50">
+           <div className="bg-slate-900 text-white px-10 py-6 rounded-[2.5rem] shadow-[0_32px_64px_rgba(0,0,0,0.5)] flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10">
+              <p className="text-sm font-black tracking-tight text-center sm:text-left">{t('landing.licenses.demo_modal.ready_to_transform')}</p>
+              <Link to="/register" onClick={onClose} className="w-full sm:w-auto px-8 py-3 bg-primary text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">
+                 {t('landing.licenses.demo_modal.try_free')}
+              </Link>
+           </div>
         </div>
       </motion.div>
     </motion.div>
@@ -681,12 +701,12 @@ const DemoModal = ({ onClose }) => {
 const DemoSidebarLink = ({ icon, label, active, onClick }) => (
   <button 
     onClick={onClick}
-    className={`w-full flex items-center gap-5 px-6 py-4 rounded-[1.5rem] transition-all duration-300 ${active ? 'bg-primary/10 text-primary shadow-sm' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
+    className={`w-full flex items-center gap-6 px-6 py-4 rounded-2xl transition-all duration-500 ${active ? 'bg-primary/10 text-primary shadow-sm' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}`}
   >
-    <div className={`shrink-0 transition-transform duration-300 ${active ? 'scale-110' : ''}`}>
-       {React.cloneElement(icon, { size: 22, strokeWidth: active ? 2.5 : 2 })}
+    <div className={`shrink-0 transition-all duration-500 ${active ? 'scale-110 rotate-3' : ''}`}>
+       {React.cloneElement(icon, { size: 22, strokeWidth: active ? 3 : 2 })}
     </div>
-    <span className="hidden lg:block text-sm font-black tracking-tight">{label}</span>
+    <span className="hidden lg:block text-[11px] font-black uppercase tracking-widest">{label}</span>
   </button>
 );
 
@@ -698,17 +718,16 @@ const StatCard = ({ label, value, icon, color }) => {
   };
 
   return (
-    <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col gap-6 text-left group hover:border-primary/20 transition-all">
-       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${colors[color]} group-hover:scale-110 transition-transform`}>
-          {React.cloneElement(icon, { size: 24 })}
+    <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-[0_16px_48px_rgba(0,0,0,0.04)] flex flex-col gap-8 text-left group hover:border-primary/20 hover:shadow-2xl transition-all duration-700">
+       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 ${colors[color]}`}>
+          {React.cloneElement(icon, { size: 24, strokeWidth: 2.5 })}
        </div>
        <div>
-          <p className="text-xs font-black uppercase text-slate-400 tracking-widest mb-1">{label}</p>
-          <p className="text-4xl font-black text-slate-900">{value}</p>
+          <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">{label}</p>
+          <p className="text-4xl font-black text-slate-900 tracking-tighter">{value}</p>
        </div>
     </div>
   );
 };
 
 export default Landing;
-

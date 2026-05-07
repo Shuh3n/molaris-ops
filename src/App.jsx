@@ -12,10 +12,13 @@ import InvoicePreview from './pages/InvoicePreview';
 import Patients from './pages/Patients';
 import Appointments from './pages/Appointments';
 import Settings from './pages/Settings';
+import ScrollToTop from './components/ScrollToTop';
+import { PrivacyPolicy, TermsOfService, CookiesPolicy } from './pages/LegalPages';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -36,6 +39,10 @@ function App() {
           <Route index element={<DentistWorkstation />} />
           <Route path="pacientes" element={<Patients />} />
         </Route>
+
+        <Route path="/privacidad" element={<PrivacyPolicy />} />
+        <Route path="/terminos" element={<TermsOfService />} />
+        <Route path="/cookies" element={<CookiesPolicy />} />
 
         {/* Redirecciones de conveniencia */}
         <Route path="/dashboard" element={<Navigate to="/dashboard/recepcionista" replace />} />

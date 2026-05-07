@@ -6,6 +6,61 @@
     "login_btn": "Log In",
     "get_started": "Get Started Now",
     "view_demo": "View Demo",
+    "nav": {
+      "features": "Features",
+      "solutions": "Solutions",
+      "pricing": "Plans"
+    },
+    "hero": {
+      "tag": "Next Gen Dental OS",
+      "title": "Transform your clinic into a",
+      "title_accent": "digital powerhouse",
+      "desc": "Minimalist management designed for clinics that demand excellence. Automate administration and focus on what matters: your patients.",
+      "cta": "Get Started Now",
+      "demo": "Watch Demo"
+    },
+    "trust": {
+      "title": "Trust",
+      "subtitle": "The platform that powers your clinic's growth."
+    },
+    "features_section": {
+      "title": "Everything you need, without the complexity.",
+      "subtitle": "We designed Molaris OPS to be so intuitive you won't need a user manual.",
+      "wsp_title": "WhatsApp Automation",
+      "wsp_desc": "Smart reminders that reduce no-shows by 40%.",
+      "finances_title": "Real-Time Finances",
+      "finances_desc": "Total control over billing, cash flow, and profitability reports.",
+      "security_title": "AES-256 Security",
+      "security_desc": "Your information and your patients' data protected with banking standards."
+    },
+    "showcase": {
+      "title": "Total control is in your hands.",
+      "desc": "From the first consultation to the final treatment, Molaris OPS accompanies you in every step of the clinical flow.",
+      "item1_title": "Smart Agenda",
+      "item1_desc": "Drag and drop appointments with supreme ease.",
+      "item2_title": "Digital Clinical Records",
+      "item2_desc": "Complete history accessible from anywhere.",
+      "item3_title": "Advanced Analytics",
+      "item3_desc": "Understand which treatments are the most profitable.",
+      "cta": "See in Action"
+    },
+    "final_cta": {
+      "title": "Take your clinic to the",
+      "title_accent": "Next Level",
+      "desc": "Join the professionals who have already transformed their management with Molaris OPS.",
+      "cta": "Start 15-Day Free Trial",
+      "sales": "Talk to Sales"
+    },
+    "footer": {
+      "desc": "Redefining dental operations through design and advanced technology. Created for clinical excellence.",
+      "tagline": "MADE FOR THE BEST CLINICS IN THE WORLD",
+      "product": "Product",
+      "legal": "Legal",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "cookies": "Cookies",
+      "security_title": "Security"
+    },
     "features": {
       "analytics": "Real-Time Analytics",
       "analytics_desc": "Instant insights into your clinic performance and patient flow.",
@@ -16,29 +71,66 @@
     }
     ,
     "licenses": {
-      "title": "Plans & Licenses",
-      "subtitle": "Pick the plan that fits your clinic. Transparency, support, and growth.",
+      "title_1": "Planes a tu",
+      "title_2": "Medida",
+      "subtitle": "Choose the plan that best fits your clinic. No hidden fees, just real growth.",
       "loading": "Loading plans...",
       "per_month": "per month",
-      "active_until": "Active until",
-      "days_remaining": "{{count}} days remaining",
-      "no_plans": "No plans available right now.",
-      "contact": "Contact",
-      "get_started": "Get started",
-      "contact_cta": "Contact sales",
-      "benefit_1": "24/7 support",
-      "benefit_2": "Backups & security",
-      "benefit_3": "Automatic updates",
-      "remaining_days": "{{count}} days remaining",
-      "remaining_weeks": "{{count}} weeks remaining",
-      "remaining_months": "{{count}} months remaining",
-      "plans": {
-        "Básica": { "name": "Basic", "desc": "Suitable for solo clinics." },
-        "Estándar": { "name": "Standard", "desc": "For small clinics." },
-        "Pro": { "name": "Pro", "desc": "For medium clinics." },
-        "Pro+": { "name": "Pro+", "desc": "Enterprise solution." }
+      "per_year": "per year",
+      "most_popular": "MOST POPULAR",
+      "contact_sales": "Contact Sales",
+      "choose_plan": "Choose Plan",
+      "billing": {
+        "monthly": "MONTHLY",
+        "yearly": "ANNUAL",
+        "off": "-20% OFF"
+      },
+      "benefits": {
+        "title": "Total Trust",
+        "subtitle": "All our licenses include:",
+        "support": "24/7 Support",
+        "security": "AES-256 Security",
+        "backups": "Backups & Security",
+        "updates": "Free Updates",
+        "whatsapp": "WhatsApp Support",
+        "clinical_history": "Pro Clinical History",
+        "priority_support": "Priority Support",
+        "multi_site": "Multi-Site Cloud"
+      },
+      "doctor": "Dentist",
+      "doctors": "Dentists",
+      "transparent_pricing": "Transparent Pricing",
+      "contact_cta": "Contact Sales",
+      "benefit_1": "24/7 Support",
+      "benefit_2": "Backups & Security",
+      "benefit_3": "Free Updates",
+      "demo_modal": {
+        "title": "INTERACTIVE DEMO",
+        "welcome": "Hello, {{name}} 👋",
+        "subtitle": "Your clinic is running perfectly.",
+        "role_receptionist": "Receptionist",
+        "role_dentist": "Dentist",
+        "stats": {
+          "appointments": "Today's Appts",
+          "whatsapp": "WhatsApp",
+          "revenue": "Revenue"
+        },
+        "next_appointments": "Upcoming Appointments",
+        "view_agenda": "View Full Agenda",
+        "master_agenda": "Master Agenda",
+        "add_appointment": "+ Schedule Appt",
+        "section_active": "This feature is active for clients with a valid license.",
+        "try_free": "TRY FOR FREE",
+        "ready_to_transform": "READY TO TRANSFORM YOUR CLINIC?",
+        "plans": {
+          "Básica": "Basic",
+          "Estándar": "Standard",
+          "Pro": "Pro",
+          "Pro+": "Pro+"
+        }
       }
     }
+
   },
   "login": {
     "welcome": "Welcome Back",
@@ -54,6 +146,35 @@
     "meets": "meets",
     "serenity": "Serenity.",
     "branding_desc": "Access your clinical sanctuary. Manage patient wellness with an interface designed for clarity and administrative excellence."
+  },
+  "register": {
+    "title": "Create your Clinic",
+    "subtitle": "Join the new generation of dental management",
+    "step1": "User Information",
+    "step2": "Clinic Details",
+    "step3": "Final Setup",
+    "name": "Full Name",
+    "name_placeholder": "e.g., Dr. Julian Smith",
+    "clinic_name": "Clinic Name",
+    "clinic_placeholder": "e.g., Molaris Dental Center",
+    "phone": "Contact Phone",
+    "phone_placeholder": "e.g., +1 234 567 8901",
+    "email_placeholder": "dr.smith@molaris.com",
+    "create_account": "Create My Space",
+    "already_have": "Already have an account?",
+    "login": "Log in",
+    "success": "Registration successful! You can now log in.",
+    "error": "Registration failed. Please try again.",
+    "trial_title": "Free Trial",
+    "trial_desc": "By registering, you will get 15 days of full access to try MOLARIS OPS with your team.",
+    "validation": {
+      "name_required": "Please enter your full name.",
+      "email_invalid": "The email format is invalid.",
+      "password_short": "Password must be at least 6 characters.",
+      "clinic_required": "Please complete the clinic details.",
+      "auth_error": "This email is already registered or there was a network error.",
+      "db_error": "Internal error creating profile. Please contact support."
+    }
   },
   "common": {
     "search": "Search...",

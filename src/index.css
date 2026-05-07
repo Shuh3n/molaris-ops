@@ -13,6 +13,7 @@
 @layer base {
   html, body, #root {
     @apply min-h-screen;
+    scroll-behavior: smooth;
   }
   body {
     @apply bg-background font-body text-slate-800;
