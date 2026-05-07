@@ -153,8 +153,46 @@ serve(async (req) => {
 
       await validateRoleLimits(adminClient, clinica_id, role.nombre, rol_id)
 
+      // 1. Verificar si el usuario ya existe en perfiles (por email)
+      const { data: existingProfile, error: searchError } = await adminClient
+        .from('perfiles')
+        .select('id, clinica_id, nombre_completo')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (searchError) throw searchError
+
+      if (existingProfile) {
+        if (existingProfile.clinica_id === clinica_id) {
+          throw new Error('Este usuario ya es miembro de tu clínica.')
+        }
+        
+        if (existingProfile.clinica_id) {
+          throw new Error('Este usuario ya pertenece a otra clínica. Por ahora, un usuario solo puede pertenecer a una clínica a la vez.')
+        }
+
+        // Si existe pero no tiene clínica (fue retirado o es nuevo sin clínica), lo asociamos
+        const { error: associateError } = await adminClient
+          .from('perfiles')
+          .update({
+            clinica_id,
+            rol_id,
+            nombre_completo // Actualizamos el nombre por si cambió
+          })
+          .eq('id', existingProfile.id)
+
+        if (associateError) throw associateError
+
+        return new Response(JSON.stringify({ message: 'Usuario existente asociado a la clínica correctamente.' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      }
+
+      // 2. Si no existe, enviamos invitación
       const inviteRes = await adminClient.auth.admin.inviteUserByEmail(email, {
         data: { nombre_completo },
+        redirectTo: 'https://molaris-ops.vercel.app/'
       })
 
       const invitedUser = inviteRes?.data?.user

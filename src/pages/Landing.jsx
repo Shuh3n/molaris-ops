@@ -506,6 +506,7 @@ const DemoModal = ({ onClose }) => {
   const [role, setRole] = useState('recepcionista');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(false);
+  const [isCtaVisible, setIsCtaVisible] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -805,8 +806,8 @@ const DemoModal = ({ onClose }) => {
         <div className="h-20 border-b border-slate-100 flex items-center justify-between px-8 bg-white shrink-0">
           <div className="flex items-center gap-12">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center">
-                 <img src="/favicon.svg" className="w-6 h-6 invert" alt="logo" />
+              <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg">
+                 <img src="/favicon.svg" className="w-6 h-6" alt="logo" />
               </div>
               <span className="font-black text-slate-900 tracking-tighter uppercase">{t('landing.licenses.demo_modal.title')}</span>
             </div>
@@ -832,9 +833,9 @@ const DemoModal = ({ onClose }) => {
           </button>
         </div>
 
-        <div className="flex-grow flex overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-20 lg:w-72 bg-white border-r border-slate-100 flex flex-col py-10 shrink-0">
+        <div className="flex-grow flex overflow-hidden relative">
+          {/* Sidebar - Hidden on Mobile */}
+          <div className="hidden md:flex w-72 bg-white border-r border-slate-100 flex-col py-10 shrink-0">
             <nav className="space-y-2 px-4">
               <DemoSidebarLink icon={<Icons.Dashboard />} label={t('landing.licenses.demo_modal.sidebar.dashboard')} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
               <DemoSidebarLink icon={<Icons.Calendar />} label={t('landing.licenses.demo_modal.sidebar.agenda')} active={activeTab === 'citas'} onClick={() => setActiveTab('citas')} />
@@ -847,7 +848,7 @@ const DemoModal = ({ onClose }) => {
               )}
             </nav>
             
-            <div className="mt-auto px-6 hidden lg:block">
+            <div className="mt-auto px-6">
                <div className="p-5 bg-slate-50 rounded-[2rem] flex items-center gap-4 border border-slate-100 shadow-sm">
                   <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-xs uppercase">
                     {role[0]}
@@ -860,8 +861,18 @@ const DemoModal = ({ onClose }) => {
             </div>
           </div>
 
+          {/* Bottom Navbar - Visible only on Mobile */}
+          <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-2xl border-t border-slate-100 z-[100] flex items-center justify-around px-4 pb-2">
+            <DemoBottomNavItem icon={<Icons.Dashboard />} label="Dash" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+            <DemoBottomNavItem icon={<Icons.Calendar />} label="Citas" active={activeTab === 'citas'} onClick={() => setActiveTab('citas')} />
+            <DemoBottomNavItem icon={<Icons.Team />} label="Pacientes" active={activeTab === 'pacientes'} onClick={() => setActiveTab('pacientes')} />
+            {role === 'recepcionista' && (
+              <DemoBottomNavItem icon={<Icons.Bill />} label="Fact" active={activeTab === 'facturacion'} onClick={() => setActiveTab('facturacion')} />
+            )}
+          </div>
+
           {/* Viewport */}
-          <div className="flex-grow overflow-y-auto bg-slate-50/30 p-6 md:p-16 relative">
+          <div className="flex-grow overflow-y-auto bg-slate-50/30 p-6 md:p-16 pb-32 md:pb-16 relative">
             <AnimatePresence mode="wait">
               {loading ? (
                 <motion.div 
@@ -887,15 +898,51 @@ const DemoModal = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Global CTA */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-50">
-           <div className="bg-slate-900 text-white px-10 py-6 rounded-[2.5rem] shadow-[0_32px_64px_rgba(0,0,0,0.5)] flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10">
-              <p className="text-sm font-black tracking-tight text-center sm:text-left">{t('landing.licenses.demo_modal.ready_to_transform')}</p>
-              <Link to="/register" onClick={onClose} className="w-full sm:w-auto px-8 py-3 bg-primary text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">
-                 {t('landing.licenses.demo_modal.try_free')}
-              </Link>
-           </div>
-        </div>
+        {/* Global CTA - Hideable */}
+        <AnimatePresence>
+          {isCtaVisible && (
+            <motion.div 
+              initial={{ y: 100, opacity: 0, x: '-50%' }}
+              animate={{ y: 0, opacity: 1, x: '-50%' }}
+              exit={{ y: 100, opacity: 0, x: '-50%' }}
+              className="fixed bottom-24 md:bottom-10 left-1/2 w-[calc(100%-2rem)] max-w-2xl z-[150]"
+            >
+              <div className="bg-slate-900 text-white px-8 py-6 md:px-10 rounded-[2.5rem] shadow-[0_32px_64px_rgba(0,0,0,0.5)] flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                
+                <button 
+                  onClick={() => setIsCtaVisible(false)}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/20 transition-all z-10"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+
+                <p className="text-sm font-black tracking-tight text-center sm:text-left pr-4">
+                  {t('landing.licenses.demo_modal.ready_to_transform')}
+                </p>
+                <Link 
+                  to="/register" 
+                  onClick={onClose} 
+                  className="w-full sm:w-auto px-8 py-4 bg-primary text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 text-center"
+                >
+                  {t('landing.licenses.demo_modal.try_free')}
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Restore CTA Button (only if hidden) */}
+        {!isCtaVisible && (
+          <motion.button
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            onClick={() => setIsCtaVisible(true)}
+            className="fixed bottom-24 md:bottom-10 right-6 w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-2xl z-[150] border border-white/10"
+          >
+            <span className="material-symbols-outlined text-primary">rocket_launch</span>
+          </motion.button>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -910,6 +957,18 @@ const DemoSidebarLink = ({ icon, label, active, onClick }) => (
        {React.cloneElement(icon, { size: 22, strokeWidth: active ? 3 : 2 })}
     </div>
     <span className="hidden lg:block text-[11px] font-black uppercase tracking-widest">{label}</span>
+  </button>
+);
+
+const DemoBottomNavItem = ({ icon, label, active, onClick }) => (
+  <button 
+    onClick={onClick}
+    className={`flex flex-col items-center gap-1 transition-all duration-300 ${active ? 'text-primary' : 'text-slate-400'}`}
+  >
+    <div className={`p-2.5 rounded-2xl transition-all ${active ? 'bg-primary/10 shadow-inner' : ''}`}>
+        {React.cloneElement(icon, { size: 24, strokeWidth: active ? 3 : 2 })}
+    </div>
+    <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[60px] text-center">{label}</span>
   </button>
 );
 
