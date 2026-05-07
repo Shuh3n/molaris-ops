@@ -311,119 +311,107 @@ const ClinicTab = ({ data, update, t }) => {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-8">
-      <div className="col-span-12 lg:col-span-7 space-y-8">
-        <section className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 md:p-8 border border-slate-100">
-          <div className="flex items-center gap-3 mb-8">
-            <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">info</span>
-            <h3 className="text-xl font-bold font-headline">{t('settings.sections.info')}</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField 
-              label={t('settings.fields.name')} 
-              value={data?.nombre_consultorio || ''} 
-              onChange={(val) => update('nombre_consultorio', val)}
-            />
-            <FormField label={t('settings.fields.id')} value={data?.id?.substring(0, 8) || ''} readOnly />
-            <div className="md:col-span-2">
-              <FormField 
-                label={t('settings.fields.email')} 
-                value={data?.email || ''} 
-                type="email" 
-                onChange={(val) => update('email', val)}
-              />
-            </div>
-            <FormField 
-              label={t('settings.fields.phone')} 
-              value={data?.telefono || ''} 
-              onChange={(val) => update('telefono', val)}
-            />
-            <FormField 
-              label="Línea de Emergencia" 
-              value={data?.telefono_emergencia || ''} 
-              onChange={(val) => update('telefono_emergencia', val)}
-            />
-          </div>
-        </section>
-      </div>
+    <div className="flex flex-col gap-8">
+      {/* Fila 1: Estado de la Licencia (Ocupa las 2 columnas en ancho total) */}
+      <section className="bg-primary/5 rounded-[2.5rem] p-6 md:p-8 border border-primary/10 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+          <span className="material-symbols-outlined text-8xl text-primary">verified_user</span>
+        </div>
+        
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+           <div className="flex items-center gap-4 text-left w-full md:w-auto">
+              <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-primary">security</span>
+              </div>
+              <div>
+                <h4 className="font-headline font-black text-lg text-primary tracking-tight">Estado de la Licencia</h4>
+                <p className="text-2xl font-black text-slate-900 mt-1">
+                  {data?.licencias?.nombre ? t(`landing.licenses.plans.${data.licencias.nombre}.name`, { defaultValue: data.licencias.nombre }) : t('settings.license.no_plan')}
+                </p>
+              </div>
+           </div>
 
-      <div className="col-span-12 lg:col-span-5 space-y-8">
-        <section className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 md:p-8 border border-slate-100 overflow-hidden relative">
-          <div className="flex items-center gap-3 mb-8">
-            <span className="material-symbols-outlined text-amber-500 bg-amber-50 p-2 rounded-lg">palette</span>
-            <h3 className="text-xl font-bold font-headline">{t('settings.sections.branding')}</h3>
-          </div>
-          <div className="space-y-6">
-            <div className="h-40 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 group hover:border-primary hover:bg-primary/5 transition-all cursor-pointer">
-              <span className="material-symbols-outlined text-4xl text-slate-300 group-hover:text-primary transition-colors">add_photo_alternate</span>
-              <p className="text-xs font-bold text-slate-400 group-hover:text-primary">{t('settings.branding.manage')}</p>
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed italic">{t('settings.branding.subtitle')}</p>
-          </div>
-        </section>
-
-        <section className="bg-primary/5 rounded-2xl p-6 md:p-8 border border-primary/10 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <span className="material-symbols-outlined text-6xl text-primary">verified_user</span>
-          </div>
-          
-          <div className="flex items-center gap-3 mb-6 relative z-10">
-             <span className="material-symbols-outlined text-primary bg-white p-1.5 rounded-lg shadow-sm">security</span>
-             <h4 className="font-headline font-bold text-primary tracking-tight">Estado de la Licencia</h4>
-          </div>
-          
-          <div className="flex flex-col gap-4 relative z-10">
-             <div className="p-5 bg-white rounded-2xl border border-primary/10 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-lg font-black text-slate-800">
-                    {data?.licencias?.nombre ? t(`landing.licenses.plans.${data.licencias.nombre}.name`, { defaultValue: data.licencias.nombre }) : t('settings.license.no_plan')}
-                  </p>
-                  <span className={`material-symbols-outlined ${data?.activa && !isExpired ? 'text-green-500' : 'text-red-500'}`}>
-                    {data?.activa && !isExpired ? 'verified' : 'error'}
-                  </span>
-                </div>
-                
+           <div className="flex-1 max-w-md w-full">
+             <div className="bg-white/60 backdrop-blur-md p-5 rounded-[1.8rem] border border-primary/10 shadow-sm">
                 {expirationDate ? (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500">{t('landing.licenses.active_until')}</span>
-                      <span className="font-bold text-slate-700">{expirationDate.toLocaleDateString()}</span>
+                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
+                      <span className="text-slate-400">{t('landing.licenses.active_until')}</span>
+                      <span className="text-slate-900">{expirationDate.toLocaleDateString()}</span>
                     </div>
                     
                     {!isExpired ? (
-                      <div className="space-y-1.5">
+                      <div className="space-y-2">
                         <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                           <motion.div 
                             initial={{ width: 0 }}
                             animate={{ width: `${Math.min(100, (daysRemaining / (data?.licencias?.default_period_days || 30)) * 100)}%` }}
-                            className={`h-full ${daysRemaining < 7 ? 'bg-red-500' : 'bg-primary'}`}
+                            className={`h-full transition-all duration-1000 ${daysRemaining < 7 ? 'bg-red-500' : 'bg-primary'}`}
                           />
                         </div>
-                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                        <div className="flex justify-between text-[9px] font-black uppercase tracking-tight">
                           <span className={daysRemaining < 7 ? 'text-red-500' : 'text-primary'}>
                             {formatRemainingHuman(daysRemaining)}
                           </span>
-                          <span className="text-slate-400">Renovación automática</span>
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px]">autorenew</span> Renovación activa
+                          </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="mt-2 p-3 bg-red-50 rounded-xl border border-red-100 flex items-center gap-2">
+                      <div className="p-2 bg-red-50 rounded-xl border border-red-100 flex items-center justify-center gap-2">
                         <span className="material-symbols-outlined text-red-500 text-sm">warning</span>
-                        <span className="text-red-600 font-bold text-xs">{t('settings.license.expired')}</span>
+                        <span className="text-red-600 font-black text-[9px] uppercase tracking-widest">{t('settings.license.expired')}</span>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500 italic">{t('settings.license.no_date')}</p>
+                  <p className="text-xs text-slate-500 font-medium italic">{t('settings.license.no_date')}</p>
                 )}
              </div>
-             
-             <button className="w-full py-3 bg-white hover:bg-slate-50 text-primary border border-primary/20 rounded-xl text-xs font-bold transition-all shadow-sm">
+           </div>
+
+           <div className="shrink-0 w-full md:w-auto">
+             <button className="w-full px-8 py-3.5 bg-white hover:bg-slate-50 text-primary border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm hover:shadow-md active:scale-[0.98]">
                 Gestionar Suscripción
              </button>
+           </div>
+        </div>
+      </section>
+
+      {/* Fila 2: Info General (Ocupa las 2 columnas) */}
+      <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 p-6 md:p-10 border border-slate-100">
+        <div className="flex items-center gap-3 mb-8">
+          <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl">info</span>
+          <h3 className="text-xl md:text-2xl font-black font-headline text-slate-900">{t('settings.sections.info')}</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 text-left">
+          <FormField 
+            label={t('settings.fields.name')} 
+            value={data?.nombre_consultorio || ''} 
+            onChange={(val) => update('nombre_consultorio', val)}
+          />
+          <FormField label={t('settings.fields.id')} value={data?.id?.substring(0, 8) || ''} readOnly />
+          <div className="md:col-span-2">
+            <FormField 
+              label={t('settings.fields.email')} 
+              value={data?.email || ''} 
+              type="email" 
+              onChange={(val) => update('email', val)}
+            />
           </div>
-        </section>
-      </div>
+          <FormField 
+            label={t('settings.fields.phone')} 
+            value={data?.telefono || ''} 
+            onChange={(val) => update('telefono', val)}
+          />
+          <FormField 
+            label={t('settings.fields.emergency')} 
+            value={data?.telefono_emergencia || ''} 
+            onChange={(val) => update('telefono_emergencia', val)}
+          />
+        </div>
+      </section>
     </div>
   );
 };

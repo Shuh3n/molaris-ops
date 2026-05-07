@@ -11,6 +11,7 @@ import Billing from './pages/Billing';
 import InvoicePreview from './pages/InvoicePreview';
 import Patients from './pages/Patients';
 import Appointments from './pages/Appointments';
+import Logs from './pages/Logs';
 import Settings from './pages/Settings';
 import ScrollToTop from './components/ScrollToTop';
 import { PrivacyPolicy, TermsOfService, CookiesPolicy } from './pages/LegalPages';
@@ -31,6 +32,7 @@ function App() {
           <Route path="facturacion" element={<Billing />} />
           <Route path="facturacion/invoice/:id" element={<InvoicePreview />} />
           <Route path="pacientes" element={<Patients />} />
+          <Route path="logs" element={<Logs />} />
           <Route path="gestion" element={<Settings />} />
         </Route>
 

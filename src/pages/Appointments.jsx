@@ -35,7 +35,10 @@ const Appointments = () => {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         }
       });
-      if (!response.ok) throw new Error('Failed to fetch appointments');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch appointments');
+      }
       const data = await response.json();
       setAppointments(data);
     } catch (error) {

@@ -8,6 +8,8 @@ import AppointmentModal from '../components/AppointmentModal';
 import { useToast } from '../components/ToastContext';
 
 const DashboardRecepcionista = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const [isPinned, setIsPinned] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -16,21 +18,10 @@ const DashboardRecepcionista = () => {
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [hasNewLogs, setHasNewLogs] = useState(false);
   const { addToast } = useToast();
   const hoverTimerRef = useRef(null);
   const notificationsRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-        setIsNotificationsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const fetchLogs = async (clinicaId) => {
     try {
@@ -45,9 +36,25 @@ const DashboardRecepcionista = () => {
         .limit(10);
       
       if (error) throw error;
+      
+      // Check if there are new logs compared to last viewed or just stored
+      if (logs.length > 0 && data.length > 0 && data[0].id !== logs[0].id) {
+        setHasNewLogs(true);
+      } else if (logs.length === 0 && data.length > 0) {
+        // Initial fetch with data shows badge
+        setHasNewLogs(true);
+      }
+      
       setLogs(data);
     } catch (error) {
       console.error("Error fetching logs:", error);
+    }
+  };
+
+  const handleOpenNotifications = () => {
+    setIsNotificationsOpen(!isNotificationsOpen);
+    if (!isNotificationsOpen) {
+      setHasNewLogs(false); // Clear badge when opening
     }
   };
 
@@ -151,6 +158,22 @@ const DashboardRecepcionista = () => {
 
   const isExpanded = isPinned || isHovered;
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    if (isNotificationsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isNotificationsOpen]);
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-50">
@@ -250,11 +273,11 @@ const DashboardRecepcionista = () => {
             </div>
             <div className="flex items-center gap-2 lg:gap-4 shrink-0 relative" ref={notificationsRef}>
               <button 
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                onClick={handleOpenNotifications}
                 className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all relative ${isNotificationsOpen ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-primary hover:bg-primary/5'}`}
               >
                 <span className="material-symbols-outlined">notifications</span>
-                {logs.length > 0 && !isNotificationsOpen && (
+                {hasNewLogs && (
                   <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                 )}
               </button>
@@ -314,7 +337,7 @@ const DashboardRecepcionista = () => {
                       )}
                     </div>
                     <div className="p-4 bg-slate-50/50 border-t border-slate-50 text-center">
-                      <button onClick={() => { setIsNotificationsOpen(false); navigate('/dashboard/recepcionista/pacientes'); }} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline transition-all">
+                      <button onClick={() => { setIsNotificationsOpen(false); navigate('/dashboard/recepcionista/logs'); }} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline transition-all">
                         Ver todo el historial
                       </button>
                     </div>
@@ -367,18 +390,18 @@ const DashboardHome = ({ userProfile, t }) => {
         // Stats: Today's appointments
         const { count: todayCount } = await supabase
           .from('citas')
-          .select('*', { count: 'exact', head: true })
+          .select('*, estados_cita!inner(nombre)', { count: 'exact', head: true })
           .eq('clinica_id', userProfile.clinica_id)
           .gte('fecha_hora', today.toISOString())
           .lt('fecha_hora', tomorrow.toISOString())
-          .neq('estado', 'cancelada');
+          .neq('estados_cita.nombre', 'cancelada');
 
         // Stats: Pending appointments
         const { count: pendingCount } = await supabase
           .from('citas')
-          .select('*', { count: 'exact', head: true })
+          .select('*, estados_cita!inner(nombre)', { count: 'exact', head: true })
           .eq('clinica_id', userProfile.clinica_id)
-          .eq('estado', 'programada');
+          .eq('estados_cita.nombre', 'programada');
 
         setStats({ today: todayCount || 0, pending: pendingCount || 0 });
 
@@ -388,16 +411,22 @@ const DashboardHome = ({ userProfile, t }) => {
           .select(`
             id,
             fecha_hora,
-            estado,
             pacientes (nombre, apellido),
-            motivos_consulta:motivo_id (nombre)
+            motivos_consulta:motivo_id (nombre),
+            estados_cita:estado_id (nombre)
           `)
           .eq('clinica_id', userProfile.clinica_id)
           .gte('fecha_hora', today.toISOString())
           .order('fecha_hora', { ascending: true })
           .limit(5);
 
-        setUpcomingAppointments(upcoming || []);
+        // Map state name for component consumption
+        const mappedUpcoming = upcoming?.map(apt => ({
+          ...apt,
+          estado: apt.estados_cita?.nombre
+        })) || [];
+
+        setUpcomingAppointments(mappedUpcoming);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {

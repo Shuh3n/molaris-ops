@@ -44,9 +44,12 @@ Deno.serve(async (req: Request) => {
         ),
         motivos_consulta:motivo_id (
           nombre
+        ),
+        estados_cita!inner (
+          nombre
         )
       `)
-      .eq('estado', 'programada')
+      .eq('estados_cita.nombre', 'programada')
       .gte('fecha_hora', mananaInicio.toISOString())
       .lt('fecha_hora', mananaFin.toISOString())
       .not('pacientes.telegram_chat_id', 'is', null)

@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 const MainLayout = ({ children }) => {
   const { t, i18n } = useTranslation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [hasNotifications, setHasNotifications] = useState(true); // Demo: starts with notifications
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -80,9 +81,14 @@ const MainLayout = ({ children }) => {
               <button onClick={toggleLanguage} className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">
                 {i18n.language === 'es' ? 'EN' : 'ES'}
               </button>
-              <button className="hover:text-primary transition-colors relative cursor-pointer">
+              <button 
+                onClick={() => setHasNotifications(false)}
+                className="hover:text-primary transition-colors relative cursor-pointer"
+              >
                 <span className="material-symbols-outlined">notifications</span>
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                {hasNotifications && (
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                )}
               </button>
               <button className="hover:text-primary transition-colors cursor-pointer">
                 <span className="material-symbols-outlined">help_outline</span>

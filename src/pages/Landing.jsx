@@ -128,59 +128,78 @@ const Landing = () => {
       {/* Mobile Menu Panel */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[110] bg-white lg:hidden"
-          >
-            <div className="flex flex-col h-full p-8 pt-32 space-y-12">
-              <nav className="flex flex-col space-y-8">
-                <a 
-                  href="#features" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-4xl font-black uppercase tracking-tight text-slate-900 hover:text-primary transition-colors"
-                >
-                  {t('landing.nav.features')}
-                </a>
-                <a 
-                  href="#solutions" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-4xl font-black uppercase tracking-tight text-slate-900 hover:text-primary transition-colors"
-                >
-                  {t('landing.nav.solutions')}
-                </a>
-                <a 
-                  href="#pricing" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-4xl font-black uppercase tracking-tight text-slate-900 hover:text-primary transition-colors"
-                >
-                  {t('landing.nav.pricing')}
-                </a>
-              </nav>
+          <>
+            {/* Liquid Glass Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="fixed inset-0 z-[105] bg-slate-900/10 backdrop-blur-md lg:hidden"
+            />
 
-              <div className="pt-12 border-t border-slate-100 flex flex-col gap-6">
-                <Link 
-                  to="/login" 
+            <motion.div
+              initial={{ opacity: 0, x: '100%' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed right-0 top-0 bottom-0 w-[85%] z-[110] bg-white/60 backdrop-blur-[50px] border-l border-white/50 shadow-[-20px_0_50px_rgba(0,0,0,0.1)] lg:hidden"
+            >
+              <div className="flex flex-col h-full p-8 pt-32 space-y-12 relative overflow-y-auto">
+                {/* Close Button Inside Menu */}
+                <button 
                   onClick={() => setIsMenuOpen(false)}
-                  className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-center"
+                  className="absolute top-8 right-8 w-12 h-12 rounded-2xl bg-white/50 border border-white flex items-center justify-center text-slate-900 shadow-sm"
                 >
-                  {t('landing.login_btn')}
-                </Link>
-                <Link 
-                  to="/register" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="w-full py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-center"
-                >
-                  {t('landing.get_started')}
-                </Link>
-                <div className="flex justify-center pt-4">
-                  <LanguageToggle />
+                  <span className="material-symbols-outlined text-2xl font-bold">close</span>
+                </button>
+
+                <nav className="flex flex-col space-y-6">
+                  <a 
+                    href="#features" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-slate-900 hover:text-primary transition-colors break-words"
+                  >
+                    {t('landing.nav.features')}
+                  </a>
+                  <a 
+                    href="#solutions" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-slate-900 hover:text-primary transition-colors break-words"
+                  >
+                    {t('landing.nav.solutions')}
+                  </a>
+                  <a 
+                    href="#pricing" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-slate-900 hover:text-primary transition-colors break-words"
+                  >
+                    {t('landing.nav.pricing')}
+                  </a>
+                </nav>
+
+                <div className="pt-12 border-t border-slate-900/5 flex flex-col gap-5">
+                  <Link 
+                    to="/login" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest text-center shadow-xl shadow-slate-900/20 px-4"
+                  >
+                    {t('landing.login_btn')}
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full py-5 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest text-center shadow-xl shadow-primary/20 px-4"
+                  >
+                    {t('landing.get_started')}
+                  </Link>
+                  <div className="flex justify-center pt-2">
+                    <LanguageToggle />
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

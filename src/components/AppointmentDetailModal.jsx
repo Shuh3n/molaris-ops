@@ -47,24 +47,33 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, onEdit, onStatus
 
             {/* Content */}
             <div className="p-8 space-y-8 overflow-y-auto max-h-[60vh] custom-scrollbar">
-              <div className="grid grid-cols-2 gap-8">
+              {/* Primary Info: Date, Time & Duration */}
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1 text-left">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{t('appointments.modal.date')}</label>
-                  <div className="flex items-center gap-2 text-slate-700 font-bold">
-                    <span className="material-symbols-outlined text-primary">calendar_today</span>
-                    {date.toLocaleDateString(undefined, { day: '2-digit', month: 'long', year: 'numeric' })}
+                  <div className="flex items-center gap-2 text-slate-700 font-bold bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <span className="material-symbols-outlined text-primary text-lg">calendar_today</span>
+                    <span className="text-xs">{date.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</span>
                   </div>
                 </div>
                 <div className="space-y-1 text-left">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{t('appointments.modal.time')}</label>
-                  <div className="flex items-center gap-2 text-slate-700 font-bold">
-                    <span className="material-symbols-outlined text-primary">schedule</span>
-                    {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <div className="flex items-center gap-2 text-slate-700 font-bold bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <span className="material-symbols-outlined text-primary text-lg">schedule</span>
+                    <span className="text-xs">{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                </div>
+                <div className="space-y-1 text-left">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{t('appointments.modal.duration') || 'Duración'}</label>
+                  <div className="flex items-center gap-2 text-slate-700 font-bold bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <span className="material-symbols-outlined text-primary text-lg">timer</span>
+                    <span className="text-xs">{appointment.duracion_minutos} min</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
+                {/* Dentist Info */}
                 <div className="space-y-1 text-left">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{t('appointments.modal.dentist')}</label>
                   <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -75,24 +84,31 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, onEdit, onStatus
                   </div>
                 </div>
 
-                <div className="space-y-1 text-left">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">Costo de la Cita</label>
-                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-green-500">
-                      <span className="material-symbols-outlined">payments</span>
+                {/* Patient Contact Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1 text-left">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{t('common.phone') || 'Teléfono'}</label>
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden">
+                      <span className="material-symbols-outlined text-slate-400 text-lg">call</span>
+                      <span className="font-bold text-slate-700 text-xs truncate">{appointment.pacientes?.telefono || 'N/A'}</span>
                     </div>
-                    <span className="font-black text-slate-900 text-lg">${new Intl.NumberFormat('es-AR').format(appointment.costo || 0)}</span>
+                  </div>
+                  <div className="space-y-1 text-left">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{t('common.id_document')}</label>
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden">
+                      <span className="material-symbols-outlined text-slate-400 text-lg">badge</span>
+                      <span className="font-bold text-slate-700 text-xs truncate">{appointment.pacientes?.documento_id || 'N/A'}</span>
+                    </div>
                   </div>
                 </div>
 
-                {appointment.notas_medicas && (
-                  <div className="space-y-1 text-left">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{t('appointments.modal.notes')}</label>
-                    <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 font-medium leading-relaxed italic">
-                      "{appointment.notas_medicas}"
-                    </div>
+                {/* Clinical Notes */}
+                <div className="space-y-1 text-left">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{t('appointments.modal.notes')}</label>
+                  <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm text-slate-600 font-medium leading-relaxed italic min-h-[100px]">
+                    {appointment.notas_medicas ? `"${appointment.notas_medicas}"` : 'Sin notas registradas para esta cita.'}
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
@@ -102,11 +118,13 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, onEdit, onStatus
                 {appointment.estado === 'programada' && (
                   <>
                     <button onClick={() => { onStatusChange('completada'); onClose(); }}
-                      className="w-12 h-12 flex items-center justify-center bg-white text-green-500 hover:text-green-600 rounded-2xl shadow-sm border border-slate-100 hover:scale-105 active:scale-95 transition-all">
+                      className="w-12 h-12 flex items-center justify-center bg-white text-green-500 hover:text-green-600 rounded-2xl shadow-sm border border-slate-100 hover:scale-105 active:scale-95 transition-all"
+                      title="Marcar como Completada">
                       <span className="material-symbols-outlined">check_circle</span>
                     </button>
                     <button onClick={() => { onStatusChange('cancelada'); onClose(); }}
-                      className="w-12 h-12 flex items-center justify-center bg-white text-red-500 hover:text-red-600 rounded-2xl shadow-sm border border-slate-100 hover:scale-105 active:scale-95 transition-all">
+                      className="w-12 h-12 flex items-center justify-center bg-white text-red-500 hover:text-red-600 rounded-2xl shadow-sm border border-slate-100 hover:scale-105 active:scale-95 transition-all"
+                      title="Cancelar Cita">
                       <span className="material-symbols-outlined">cancel</span>
                     </button>
                   </>

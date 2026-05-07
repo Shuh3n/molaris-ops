@@ -28,10 +28,11 @@ const DentistWorkstation = () => {
           .from('citas')
           .select(`
             *,
-            pacientes (*)
+            pacientes (*),
+            estados_cita!inner (nombre)
           `)
           .eq('dentista_id', session.user.id)
-          .eq('estado', 'programada')
+          .eq('estados_cita.nombre', 'programada')
           .order('fecha_hora', { ascending: true });
 
         if (error) throw error;

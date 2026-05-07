@@ -39,6 +39,19 @@ serve(async (req) => {
     if (profileError || !profile?.clinica_id) throw new Error('User profile or clinic not found')
     const clinica_id = profile.clinica_id
 
+    // Helper to resolve state name to ID
+    const resolveEstadoId = async (nombre: string) => {
+      const { data, error } = await supabaseClient
+        .from('estados_cita')
+        .select('id')
+        .eq('nombre', nombre)
+        .single()
+      if (error || !data) return null
+      return data.id
+    }
+
+    const check = url.searchParams.get('check') === 'true'
+
     // GET: Listar citas o motivos
     if (method === 'GET') {
       if (type === 'motivos') {
@@ -47,8 +60,53 @@ serve(async (req) => {
           .select('*')
           .eq('status', 'activo')
           .order('nombre', { ascending: true })
-        if (error) throw error
+        if (error) {
+          console.error('Error fetching motivos:', error)
+          throw error
+        }
         return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
+      }
+
+      if (check) {
+        const dentista_id = url.searchParams.get('dentista_id')
+        const fecha_hora = url.searchParams.get('fecha_hora')
+        const duracion_minutos = parseInt(url.searchParams.get('duracion_minutos') || '30')
+        const exclude_id = url.searchParams.get('exclude_id')
+
+        if (!dentista_id || !fecha_hora) throw new Error('Missing parameters for check')
+
+        const start = new Date(fecha_hora)
+        const end = new Date(start.getTime() + duracion_minutos * 60000)
+
+        let query = supabaseClient
+          .from('citas')
+          .select(`
+            id, 
+            fecha_hora, 
+            duracion_minutos,
+            estados_cita!inner (nombre)
+          `)
+          .eq('dentista_id', dentista_id)
+          .eq('clinica_id', clinica_id)
+          .neq('estados_cita.nombre', 'cancelada')
+
+        if (exclude_id) {
+          query = query.neq('id', exclude_id)
+        }
+
+        const { data: existingApts, error: queryError } = await query
+        if (queryError) throw queryError
+
+        const isDisponible = !existingApts?.some(apt => {
+          const aptStart = new Date(apt.fecha_hora)
+          const aptEnd = new Date(aptStart.getTime() + (apt.duracion_minutos || 30) * 60000)
+          return (start < aptEnd && end > aptStart)
+        })
+
+        return new Response(JSON.stringify({ disponible: isDisponible }), { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 200 
+        })
       }
 
       const { data, error } = await supabaseClient
@@ -56,14 +114,27 @@ serve(async (req) => {
         .select(`
           *,
           pacientes (nombre, apellido, telefono),
-          perfiles:dentista_id (nombre_completo),
-          motivos_consulta:motivo_id (nombre)
+          perfiles:perfiles!dentista_id (nombre_completo),
+          motivos_consulta:motivos_consulta!motivo_id (nombre),
+          estados_cita:estados_cita!estado_id (nombre)
         `)
         .eq('clinica_id', clinica_id)
         .order('fecha_hora', { ascending: true })
 
-      if (error) throw error
-      return new Response(JSON.stringify(data), {
+      if (error) {
+        console.error('Error fetching appointments:', error)
+        throw error
+      }
+
+      // Flatten the state name for backward compatibility if needed, 
+      // but let's see if we can just keep the structure and update frontend.
+      // For now, let's inject 'estado' as a top-level property
+      const mappedData = data.map(apt => ({
+        ...apt,
+        estado: apt.estados_cita?.nombre || 'desconocido'
+      }))
+
+      return new Response(JSON.stringify(mappedData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
@@ -76,18 +147,37 @@ serve(async (req) => {
         throw new Error('Paciente y fecha/hora son obligatorios')
       }
       
+      // Resolve estado_id if 'estado' (name) is provided
+      let estado_id = body.estado_id
+      if (!estado_id && body.estado) {
+        estado_id = await resolveEstadoId(body.estado)
+      }
+      // Default to 'programada' if not provided
+      if (!estado_id) {
+        estado_id = await resolveEstadoId('programada')
+      }
+
       const appointmentData = {
         ...body,
-        clinica_id: clinica_id // Ensure clinic ID is correct
+        estado_id,
+        clinica_id: clinica_id
       }
+      delete appointmentData.estado // Remove if present to avoid DB error
 
       const { data, error } = await supabaseClient
         .from('citas')
         .insert([appointmentData])
-        .select()
+        .select(`
+          *,
+          estados_cita:estados_cita!estado_id (nombre)
+        `)
         .single()
       if (error) throw error
-      return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 201 })
+      
+      return new Response(JSON.stringify({
+        ...data,
+        estado: data.estados_cita?.nombre
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 201 })
     }
 
     // PUT/PATCH: Actualizar cita
@@ -106,14 +196,27 @@ serve(async (req) => {
         throw new Error('Unauthorized or appointment not found')
       }
 
+      // Resolve estado_id if 'estado' (name) is provided
+      if (body.estado && !body.estado_id) {
+        body.estado_id = await resolveEstadoId(body.estado)
+      }
+      delete body.estado // Remove if present
+
       const { data, error } = await supabaseClient
         .from('citas')
         .update(body)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          estados_cita:estados_cita!estado_id (nombre)
+        `)
         .single()
       if (error) throw error
-      return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
+
+      return new Response(JSON.stringify({
+        ...data,
+        estado: data.estados_cita?.nombre
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
     }
 
     // DELETE: Eliminar cita
